@@ -2,19 +2,27 @@ package com.grafana.expo.controller;
 
 import com.grafana.expo.model.GrafanaDashboardResponse;
 import com.grafana.expo.model.GrafanaExportRequest;
+import com.grafana.expo.model.GrafanaPanel;
 import com.grafana.expo.service.GrafanaService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import org.json.JSONObject;
 
-import java.util.List;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@Api(tags = {"Grafana Dashboard Controller"})
+@CrossOrigin
 public class GrafanaController {
 
     private final GrafanaService grafanaService;
@@ -25,38 +33,69 @@ public class GrafanaController {
     }
 
     @PostMapping(value = "/export", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<byte[]>> exportDashboard(@RequestBody GrafanaExportRequest exportRequest) {
+    @ApiOperation(value = "Export a Grafana dashboard", response = byte[].class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 404, message = "Not Found"),
+            @ApiResponse(code = 500, message = "Internal Server Error")
+    })
+    public Mono<ResponseEntity<byte[]>> exportDashboard(@Valid @RequestBody GrafanaExportRequest exportRequest) {
         return grafanaService.exportDashboard(exportRequest)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
     }
 
     @GetMapping(value = "/dashboard/{uid}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get a Grafana dashboard by UID", response = GrafanaDashboardResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 404, message = "Not Found"),
+            @ApiResponse(code = 500, message = "Internal Server Error")
+    })
     public Mono<ResponseEntity<GrafanaDashboardResponse>> getDashboard(@PathVariable String uid) {
         return grafanaService.getDashboard(uid)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
     }
 
     @GetMapping(value = "/dashboard/{uid}/widget/{panelId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<String>> getWidget(@PathVariable String uid, @PathVariable String panelId) {
+    public Mono<ResponseEntity<?>> getPanel(@PathVariable String uid, @PathVariable String panelId) {
         return grafanaService.getDashboard(uid)
                 .map(GrafanaDashboardResponse::getDashboardJson)
                 .map(jsonString -> {
                     JSONObject jsonObject = new JSONObject(jsonString);
-                    if (!jsonObject.has("panels")) {
+
+                    if (!jsonObject.has("dashboard")) {
                         return ResponseEntity.notFound().build();
                     }
-                    JSONArray panels = jsonObject.getJSONArray("panels");
+
+                    JSONObject dashboard = jsonObject.getJSONObject("dashboard");
+
+                    if (!dashboard.has("panels")) {
+                        return ResponseEntity.notFound().build();
+                    }
+
+                    JSONArray panels = dashboard.getJSONArray("panels");
+
                     for (int i = 0; i < panels.length(); i++) {
                         JSONObject panel = panels.getJSONObject(i);
-                        if (panel.getString("id").equals(panelId)) {
-                            return ResponseEntity.ok().body(panel.toString());
+
+                        if (panel.getString("uid").equals(panelId)) {
+                            GrafanaPanel grafanaPanel = new GrafanaPanel();
+                            grafanaPanel.setPanelId(panelId);
+                            grafanaPanel.setPanelTitle(panel.getString("title"));
+                            grafanaPanel.setPanelType(panel.getString("type"));
+                           // grafanaPanel.setPanelUrl(panel.getString("url"));
+
+                            return ResponseEntity.ok().body(grafanaPanel);
                         }
                     }
+
                     return ResponseEntity.notFound().build();
-                });
+                })
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
     }
-
-
 }
