@@ -1,32 +1,16 @@
 package com.grafana.expo.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@AllArgsConstructor
+@Getter
+@Setter
 public class GrafanaExportResponse {
     private String status;
     private String message;
     private byte[] dashboardJson;
 
-    public String getStatus() {
-        return status;
-    }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public byte[] getDashboardJson() {
-        return dashboardJson;
-    }
-
-    public void setDashboardJson(byte[] dashboardJson) {
-        this.dashboardJson = dashboardJson;
-    }
 }

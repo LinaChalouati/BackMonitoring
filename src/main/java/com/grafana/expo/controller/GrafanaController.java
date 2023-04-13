@@ -66,7 +66,7 @@ public class GrafanaController {
                 .map(GrafanaDashboardResponse::getDashboardJson)
                 .map(jsonString -> {
                     JSONObject jsonObject = new JSONObject(jsonString);
-
+            System.out.println("mrigl fl back");
                     if (!jsonObject.has("dashboard")) {
                         return ResponseEntity.notFound().build();
                     }
@@ -79,8 +79,13 @@ public class GrafanaController {
 
                     JSONArray panels = dashboard.getJSONArray("panels");
 
+                    System.out.println("l9a panel");
+
                     for (int i = 0; i < panels.length(); i++) {
                         JSONObject panel = panels.getJSONObject(i);
+                        System.out.println("l9a panel 1.2");
+                        System.out.println(panel.getString("uid"));
+                        System.out.println(panelId);
 
                         if (panel.getString("uid").equals(panelId)) {
                             GrafanaPanel grafanaPanel = new GrafanaPanel();
@@ -88,6 +93,7 @@ public class GrafanaController {
                             grafanaPanel.setPanelTitle(panel.getString("title"));
                             grafanaPanel.setPanelType(panel.getString("type"));
                            // grafanaPanel.setPanelUrl(panel.getString("url"));
+                            System.out.println("l9a panel 2");
 
                             return ResponseEntity.ok().body(grafanaPanel);
                         }
