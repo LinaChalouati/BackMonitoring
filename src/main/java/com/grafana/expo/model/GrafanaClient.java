@@ -138,7 +138,16 @@ public class GrafanaClient {
 
     }
 
+    public void updateDashboard(){
+        HttpHeaders updateHeaders = new HttpHeaders();
+        updateHeaders.setContentType(MediaType.APPLICATION_JSON);
+        updateHeaders.set("Authorization", "Bearer " + apiKey);
+        //HttpEntity<String> updateRequestEntity = new HttpEntity<>(objectMapper.writeValueAsString(dashboardNode), updateHeaders);
 
+
+
+
+    }
 
 }
 
