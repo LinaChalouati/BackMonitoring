@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.MutablePropertyValues;
 
 @Entity
 @AllArgsConstructor
@@ -20,9 +21,10 @@ public class Dashboard {
 
     private String title;
     private String JsonPayLoad;
+ //   private String panel;
+
     public Dashboard() {
 
     }
-
 
 }
