@@ -1,21 +1,8 @@
 package com.grafana.expo.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.grafana.expo.model.Dashboard;
-import com.grafana.expo.model.DashboardBuilder;
-import com.grafana.expo.model.GrafanaClient;
-import com.grafana.expo.model.GrafanaPanel;
 import com.grafana.expo.repo.DashboardRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.awt.*;
-import java.lang.annotation.Target;
 
 @Service
 public class DashboardService {
@@ -45,7 +32,7 @@ public class DashboardService {
         dashboard.setTitle(title);
         dashboard.setJsonPayLoad(jsonPayload);
         dashboardRepository.save(dashboard);
-        System.out.println("l dashbooooard aa 7ajj"+dashboard);
+        System.out.println("l dashbooooard aa "+dashboard);
     }*/
 
 
