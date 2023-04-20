@@ -1,21 +1,12 @@
-package com.grafana.expo.service;
+package com.expo.grafana.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grafana.expo.model.GrafanaDashboardResponse;
-import com.grafana.expo.model.GrafanaExportRequest;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.expo.grafana.model.GrafanaDashboardResponse;
+import com.expo.grafana.model.GrafanaExportRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class GrafanaService {

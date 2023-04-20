@@ -1,10 +1,10 @@
-package com.grafana.expo.controller;
+package com.expo.grafana.controller;
 
+import com.expo.grafana.service.DashboardBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.grafana.expo.service.DashboardBuilder;
-import com.grafana.expo.service.GrafanaClient;
-import com.grafana.expo.service.PanelClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.expo.grafana.service.GrafanaClient;
+import com.expo.grafana.service.PanelClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,11 +60,15 @@ public class DashboardController {
     }
     @PostMapping("/modifyDashboard")
     public ResponseEntity<String> modifyDashboard(
-            @RequestParam(value = "dashboardUid") String dashboardUid,
-            @RequestParam(value = "newTitle", required = false) String newTitle) {
+            @RequestParam(value = "dashboardTitle") String dashboardTitle,
+            @RequestParam(value = "newTitle", required = false) String newTitle,
+            @RequestParam(value = "refresh", required = false) String refresh,
+            @RequestParam(value = "timeFrom", required = false) String timeFrom,
+            @RequestParam(value = "timeTo", required = false) String timeTo,
+            @RequestParam(value = "timeRange", required = false) String timeRange) {
         try {
-            grafanaClient.modifyDashboard(dashboardUid, newTitle);
-            System.out.println("controller t3ada");
+         //   String dashboardUid=grafanaClient.getDashboardUidByTitle(dashboardTitle);
+            grafanaClient.modifyDashboard(dashboardTitle,newTitle,refresh,timeFrom,timeTo,timeRange);
             return ResponseEntity.ok("Dashboard updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating dashboard: " + e.getMessage());
@@ -78,11 +82,12 @@ public class DashboardController {
 
     }
         @PostMapping("/getpanels")
-    public void getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException, UnsupportedEncodingException {
+    public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException, UnsupportedEncodingException {
 
-        panelClient.GetPanels(dashboardTitle);
+        return  grafanaClient.GetPanels(dashboardTitle);
 
-    }
+
+        }
   /*  @PostMapping("/getdashboard")
     public void getDashboard(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException, UnsupportedEncodingException {
 
@@ -93,27 +98,28 @@ public class DashboardController {
     public void updatePanel(@RequestParam (value="dashboardTitle")String dashboardTitle,@RequestParam (value="panelTitle") String panelTitle, @RequestParam (value="updatedPanel")ObjectNode updatedPanel) throws JsonProcessingException {
         panelClient.updatePanel(dashboardTitle, panelTitle, updatedPanel);
     }*/
-    @PostMapping("/modifypanel")
-    public void modifyPanel(@RequestParam (value="dashboardTitle")String dashboardTitle,@RequestParam (value="panelId") int panelId, @RequestParam (value="newTitle" ,required = false)String newTitle ,@RequestParam (value="newType",required = false)String newType) throws JsonProcessingException {
+        @PostMapping("/modifypanel")
+    public void modifyPanel(@RequestParam (value="dashboardTitle")String dashboardTitle,@RequestParam (value="panelId") int panelId, @RequestParam (value="newTitle" ,required = false)String newTitle ,@RequestParam (value="newType",required = false)String newType) throws Exception {
         panelClient.modifyPanel(dashboardTitle, panelId, newTitle,newType);
     }
     @PostMapping("/getpanelbyid")
-    public void getPanelById(@RequestParam (value="panelid") String panelId,@RequestParam(value = "dashboardTitle") String dashboardTitle) throws JsonProcessingException {
-        panelClient.getPanelById(panelId,dashboardTitle);
+    public JsonNode getPanelById(@RequestParam (value="panelid") String panelId,@RequestParam(value = "dashboardTitle") String dashboardTitle) throws JsonProcessingException {
 
+
+        return panelClient.getPanelById(panelId,dashboardTitle);
     }
     @PostMapping("/getpanelbytitle")
-    public void getPanelByTitle(@RequestParam (value="dashboardTitle") String dashboardTitle,@RequestParam(value = "panelTitle") String panelTitle) throws JsonProcessingException {
-        panelClient.getPanelByTitle(dashboardTitle,panelTitle);
+    public JsonNode getPanelByTitle(@RequestParam (value="dashboardTitle") String dashboardTitle,@RequestParam(value = "panelTitle") String panelTitle) throws JsonProcessingException {
+      return  panelClient.getPanelByTitle(dashboardTitle,panelTitle);
 
     }
     @PostMapping("/getPanelIdByTitle")
-    public void getPanelIdByTitle(@RequestParam(value="dashboardTitle") String dashboardTitle , @RequestParam(value = "panelTitle") String panelTitle) throws IOException {
-        panelClient.getPanelIdByTitle(dashboardTitle,panelTitle);
+    public String getPanelIdByTitle(@RequestParam(value="dashboardTitle") String dashboardTitle , @RequestParam(value = "panelTitle") String panelTitle) throws IOException {
+        return panelClient.getPanelIdByTitle(dashboardTitle,panelTitle);
     }
-    @PostMapping("/finddashboard")
-    public void findDashbordByTitle(@RequestParam (value="dashboardTitle")String dashboardTitle) throws JsonProcessingException {
-       grafanaClient.findDashbordByTitle(dashboardTitle);
+    @PostMapping("/getDashboard")
+    public JsonNode findDashbordByTitle(@RequestParam (value="dashboardTitle")String dashboardTitle) throws JsonProcessingException {
+     return  grafanaClient.getDashboardByTitle(dashboardTitle);
     }
 
 }

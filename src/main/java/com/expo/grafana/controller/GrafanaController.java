@@ -1,9 +1,9 @@
-package com.grafana.expo.controller;
+package com.expo.grafana.controller;
 
-import com.grafana.expo.model.GrafanaDashboardResponse;
-import com.grafana.expo.model.GrafanaExportRequest;
-import com.grafana.expo.model.GrafanaPanel;
-import com.grafana.expo.service.GrafanaService;
+import com.expo.grafana.model.GrafanaDashboardResponse;
+import com.expo.grafana.model.GrafanaExportRequest;
+import com.expo.grafana.model.GrafanaPanel;
+import com.expo.grafana.service.GrafanaService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

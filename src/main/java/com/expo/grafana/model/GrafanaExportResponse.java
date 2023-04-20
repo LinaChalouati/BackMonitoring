@@ -1,4 +1,4 @@
-package com.grafana.expo.model;
+package com.expo.grafana.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

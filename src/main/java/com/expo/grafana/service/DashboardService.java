@@ -1,6 +1,6 @@
-package com.grafana.expo.service;
+package com.expo.grafana.service;
 
-import com.grafana.expo.repo.DashboardRepository;
+import com.expo.grafana.repo.DashboardRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

@@ -1,20 +1,16 @@
-package com.grafana.expo.service;
+package com.expo.grafana.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -115,6 +111,25 @@ public class GrafanaClient {
 
       return dashboardId;
   }
+    public String getDashboardUidByTitle(String dashboardTitle) throws IOException {
+        HttpEntity<String> requestEntity=this.getHeaderHttp();
+        RestTemplate restTemplate = new RestTemplate();
+        System.out.println(restTemplate);
+        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+        //System.out.println("l response"+response);
+
+        JsonNode root = new ObjectMapper().readTree(response.getBody());
+        //System.out.println(root);
+
+        JsonNode firstResult = root.get(0);
+        //System.out.println(firstResult);
+
+        String dashboardUid = firstResult.get("uid").asText();
+        //System.out.println("id"+dashboardId);
+
+        return dashboardUid;
+    }
+
 
 
     public void deleteDashboard(String dashboardTitle) {
@@ -170,61 +185,101 @@ public class GrafanaClient {
         }
     }*/
 
-   public void modifyDashboard(String dashboardUid, String newTitle) throws JsonProcessingException {
-        // Construct the JSON payload with the new title
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode dashboardNode = objectMapper.createObjectNode();
-        ObjectNode dashboardObjectNode = dashboardNode.putObject("dashboard");
-       // dashboardObjectNode.put("id", dashboardId);
-        dashboardObjectNode.put("uid", dashboardUid);
-        dashboardObjectNode.put("title", newTitle);
-        dashboardNode.put("overwrite",true);
+    public void modifyDashboard(String dashboardTitle, String newTitle, String refresh,String timeFrom,String timeTo,String timeRange) throws JsonProcessingException {
+        // First, retrieve the existing dashboard JSON
+        String dashboardJson = this.GetDashboard(dashboardTitle);
 
-        // Convert the object to JSON
-        String dashboardJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
-        System.out.println("l dashboard"+dashboardJson);
+        // Convert the JSON string to a JSON object using Jackson ObjectMapper
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
 
-        // Update the dashboard in Grafana
-        updateDashboard(dashboardJson);
+        // Modify the title if a new title is provided
+        if (newTitle != null && !newTitle.isEmpty()) {
+            ((ObjectNode) dashboardNode).put("title", newTitle);
+        }
 
+        // Modify the refresh interval if a new interval is provided
+        if (refresh != null && !refresh.isEmpty()) {
+            ((ObjectNode) dashboardNode).put("refresh", refresh+"s");
+        }
+        if (timeFrom != null && !timeFrom.isEmpty() && timeTo != null && !timeTo.isEmpty()) {
+            ObjectNode timeNode = mapper.createObjectNode();
+            timeNode.put("from", timeFrom);
+            timeNode.put("to", timeTo);
+            ((ObjectNode) dashboardNode).set("time", timeNode);
+        }
 
+        if (timeRange != null && !timeRange.isEmpty()) {
+            ObjectNode timeNode = mapper.createObjectNode();
+            timeNode.put("from", "now-"+timeRange);
+            timeNode.put("to", "now");
+
+            ((ObjectNode) dashboardNode).set("time", timeNode);
+        }
+
+        // Convert the modified JSON object back to a string and update the dashboard
+        String modifiedDashboardJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
+        System.out.println(modifiedDashboardJson);
+
+        this.updateDashboard(modifiedDashboardJson);
     }
 
 
-
-
     public void updateDashboard(String dashboardJson) throws JsonProcessingException {
-        HttpEntity<String> requestEntity = getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
         String url = grafanaUrl + "api/dashboards/db";
-        System.out.println(url);
-        System.out.println(dashboardJson);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class, dashboardJson);
+        HttpHeaders headers = getHeaders();
 
-
+        HttpEntity<String> requestEntity = new HttpEntity<String>("{\"dashboard\":" + dashboardJson + "}", headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
         if (response.getStatusCode() != HttpStatus.OK) {
             throw new RuntimeException("Failed to update dashboard: " + response.getBody());
         }
     }
 
+    private HttpHeaders getHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
+        return headers;
+    }
 
-    public String findDashbordByTitle(String dashboardTitle) throws JsonProcessingException {
+
+
+    public JsonNode getDashboardByTitle(String dashboardTitle) throws JsonProcessingException {
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
 
-        // Search for dashboards
-        ResponseEntity<String> dashboardSearchResponse = restTemplate.exchange(grafanaUrl + "api/search?type=dash-db&query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
-        System.out.println("Dashboard search status code: " + dashboardSearchResponse.getStatusCode());
-        System.out.println("Dashboard search response body: " + dashboardSearchResponse.getBody());
-
-        // Return the dashboard ID if found
-        JsonNode searchResultNode = new ObjectMapper().readTree(dashboardSearchResponse.getBody());
-        if (searchResultNode.size() == 0) {
-            throw new RuntimeException("Dashboard not found: " + dashboardTitle);
+        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+        System.out.println(response);
+        JsonNode root = new ObjectMapper().readTree(response.getBody());
+        if (root.size() == 0) {
+            throw new RuntimeException("Dashboard not found");
         }
-        String dashboardId = searchResultNode.get(0).get("uid").asText();
-        return dashboardId;
+
+        for (JsonNode result : root) {
+            JsonNode titleNode = result.get("title");
+            if (titleNode != null && dashboardTitle.equals(titleNode.asText())) {
+                return result;
+            }
+        }
+
+        throw new RuntimeException("Dashboard not found");
     }
+    public List<JsonNode> GetPanels(String dashboardTitle) throws JsonProcessingException {
+        String dashboardJson = this.GetDashboard(dashboardTitle);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
+        List<JsonNode> panels = new ArrayList<>();
+        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+            panels.add(panelNode);
+        }
+        System.out.println("OKKKK");
+        System.out.println(panels);
+
+        return panels;
+    }
+
 
 }
 

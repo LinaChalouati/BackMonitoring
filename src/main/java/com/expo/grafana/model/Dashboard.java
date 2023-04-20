@@ -1,4 +1,4 @@
-package com.grafana.expo.model;
+package com.expo.grafana.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.MutablePropertyValues;
 
 @Entity
 @AllArgsConstructor

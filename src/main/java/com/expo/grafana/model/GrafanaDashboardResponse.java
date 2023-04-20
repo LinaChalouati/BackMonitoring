@@ -1,6 +1,4 @@
-package com.grafana.expo.model;
-
-import java.util.Map;
+package com.expo.grafana.model;
 
 
 public class GrafanaDashboardResponse {

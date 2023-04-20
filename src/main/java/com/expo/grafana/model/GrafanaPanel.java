@@ -1,10 +1,9 @@
-package com.grafana.expo.model;
+package com.expo.grafana.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor

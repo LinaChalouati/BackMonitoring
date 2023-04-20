@@ -1,8 +1,6 @@
-package com.grafana.expo.model;
+package com.expo.grafana.model;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
 
 public class DashboardManager {
     @Value("${grafana.apiKey}")
