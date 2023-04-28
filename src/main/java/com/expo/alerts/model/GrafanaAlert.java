@@ -6,14 +6,23 @@ import lombok.Setter;
 
 import java.util.List;
 
-@AllArgsConstructor
 @Getter
 @Setter
 public class GrafanaAlert {
-    private Long panelId;
-    private String alertName;
-    private String alertCondition;
-    private List<String> notificationChannels;
+    private String title;
+    private Integer dashboardId;
+    private Integer panelId;
+    private String query;
+    private AlertCondition condition;
 
-    public GrafanaAlert(){}
+    public GrafanaAlert() {}
+
+    public GrafanaAlert(String title, Integer dashboardId, Integer panelId, String query, AlertCondition condition) {
+        this.title = title;
+        this.dashboardId = dashboardId;
+        this.panelId = panelId;
+        this.query = query;
+        this.condition = condition;
+    }
+
 }

@@ -1,9 +1,10 @@
 package com.expo.alerts.service;
 
+import com.expo.alerts.model.AlertCondition;
 import com.expo.alerts.model.GrafanaAlert;
-import com.expo.grafana.model.GrafanaDashboard;
 import com.expo.grafana.model.GrafanaPanel;
 import com.expo.grafana.service.GrafanaClient;
+import com.expo.grafana.service.PanelClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.ArrayList;
 
 @Service
 public class GrafanaAlertService {
@@ -30,33 +32,74 @@ public class GrafanaAlertService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final GrafanaClient grafanaClient;
+    private final PanelClient grafanapanel;
+    private final AlertCondition alertCondition;
 
 
-    public GrafanaAlertService(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper, GrafanaClient grafanaClient) {
+
+
+
+    public GrafanaAlertService(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper, GrafanaClient grafanaClient, GrafanaPanel grafanapanel, PanelClient grafanapanel1, AlertCondition alertCondition) {
         this.restTemplate = restTemplateBuilder.build();
         this.objectMapper = objectMapper;
         this.grafanaClient = grafanaClient;
+        this.grafanapanel = grafanapanel1;
+        this.alertCondition = alertCondition;
     }
+/*
+    public void createPanelAlert(GrafanaAlert alert,String panelTitle,String dashboardTitle,AlertCondition alertCondition) throws IOException {
 
-    public void createPanelAlert(GrafanaAlert alert, String dashboardTitle) throws JsonProcessingException {
-        List<JsonNode> panels = grafanaClient.GetPanels(dashboardTitle);
-        if (panels.size() > 0) {
-         //   GrafanaPanel panel = panels.get(0);
-            JsonNode panel=panels.get(0);
+        JsonNode panel=grafanapanel.getPanelByTitle(panelTitle,dashboardTitle);
+        String panelId=grafanapanel.getPanelIdByTitle(dashboardTitle,panelTitle);
+        String dashboardId=grafanaClient.getDashboardIdByTitle(dashboardTitle);
+        String url = grafanaUrl + "/api/alerts";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        alert.setDashboardId(dashboardId);
+        alert.setPanelId(panelId);
+            String alertJson = objectMapper.writeValueAsString(alert);
+            HttpEntity<String> entity = new HttpEntity<>(alertJson, headers);
+            restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+    }
+    public void setPanelAlert(String dashboardTitle, String panelTitle, String alertName, String conditionType, String conditionOperator, double threshold) throws IOException {
+        // Get the panel by title
+        JsonNode panel = grafanapanel.getPanelByTitle(dashboardTitle, panelTitle);
+        if (panel != null) {
+            // Construct the alert object
+            GrafanaAlert alert = new GrafanaAlert();
+            alert.setAlertName(alertName);
+            String panelId=grafanapanel.getPanelIdByTitle(dashboardTitle,panelTitle);
+            String dashboardId=grafanaClient.getDashboardIdByTitle(dashboardTitle);
+            alert.setDashboardId(dashboardId);
+            alert.setPanelId(panelId);
+
+            // Construct the condition object
+            AlertCondition condition = new AlertCondition();
+            condition.setType(conditionType);
+            condition.setOperator(conditionOperator);
+            condition.setThreshold(String.valueOf(threshold));
+            List<GrafanaCondition> conditions = new ArrayList<>();
+            conditions.add(condition);
+
+            // Set the condition object in the alert
+            alert.setConditions(conditions);
+
+            // Send the alert to Grafana API
             String url = grafanaUrl + "/api/alerts";
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(apiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
-           // alert.setDashboardId(panel.getDashboardId());
-           // alert.setPanelId(panel.getId());
             String alertJson = objectMapper.writeValueAsString(alert);
             HttpEntity<String> entity = new HttpEntity<>(alertJson, headers);
             restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
         }
-    }
+    }*/
 
+/*
     public void createDashboardAlert(GrafanaAlert alert) throws JsonProcessingException {
-        GrafanaDashboard dashboard = grafanaClient.getDashboard(alert.getDashboardId());
+        JsonNode dashboard = grafanaClient.getDashboard(alert.getDashboardId());
         if (dashboard != null) {
             String url = grafanaUrl + "/api/alerts";
             HttpHeaders headers = new HttpHeaders();
@@ -86,6 +129,6 @@ public class GrafanaAlertService {
         String alertJson = objectMapper.writeValueAsString(alert);
         HttpEntity<String> entity = new HttpEntity<>(alertJson, headers);
         restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-    }
+    }*/
 
 }
