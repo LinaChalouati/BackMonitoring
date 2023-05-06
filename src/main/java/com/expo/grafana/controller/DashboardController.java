@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+
+//kiff kiff à verifier le path du panels here
+// f actia temchili .get("dashboard").get(panels) f pc mteei .get("rows").get(0).get("panels") c donc à verifier aalech (tested 06 Mai 2023)
+//ps il y'avait un changement de la version du grafana que j'utilise donc peut etre l json à générer tbadlet l format mteeo
+
 @RestController
 public class DashboardController {
 
@@ -75,29 +80,14 @@ public class DashboardController {
         }
     }
 
-    @PostMapping("/updatePanel")
-    public void updatePanel(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException{
-
-        // grafanaClient.deleteDashboard(dashboardTitle);
-
-    }
         @PostMapping("/getpanels")
-    public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException, UnsupportedEncodingException {
+    public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException {
 
         return  grafanaClient.GetPanels(dashboardTitle);
 
 
         }
-  /*  @PostMapping("/getdashboard")
-    public void getDashboard(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException, UnsupportedEncodingException {
 
-        grafanaClient.GetDashboard(dashboardTitle);
-
-    }
-    @PostMapping("/updatepanel")
-    public void updatePanel(@RequestParam (value="dashboardTitle")String dashboardTitle,@RequestParam (value="panelTitle") String panelTitle, @RequestParam (value="updatedPanel")ObjectNode updatedPanel) throws JsonProcessingException {
-        panelClient.updatePanel(dashboardTitle, panelTitle, updatedPanel);
-    }*/
         @PostMapping("/modifypanel")
     public void modifyPanel(@RequestParam (value="dashboardTitle")String dashboardTitle,@RequestParam (value="panelId") int panelId, @RequestParam (value="newTitle" ,required = false)String newTitle ,@RequestParam (value="newType",required = false)String newType) throws Exception {
         panelClient.modifyPanel(dashboardTitle, panelId, newTitle,newType);
@@ -114,7 +104,7 @@ public class DashboardController {
 
     }
     @PostMapping("/getPanelIdByTitle")
-    public String getPanelIdByTitle(@RequestParam(value="dashboardTitle") String dashboardTitle , @RequestParam(value = "panelTitle") String panelTitle) throws IOException {
+        public String getPanelIdByTitle(@RequestParam(value="dashboardTitle") String dashboardTitle , @RequestParam(value = "panelTitle") String panelTitle) throws IOException {
         return panelClient.getPanelIdByTitle(dashboardTitle,panelTitle);
     }
     @PostMapping("/getDashboard")

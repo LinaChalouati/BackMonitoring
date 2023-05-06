@@ -1,4 +1,4 @@
-package com.expo.config;
+package com.expo.prometheus.service;
 
 import com.expo.grafana.service.GrafanaClient;
 import com.fasterxml.jackson.core.JsonProcessingException;

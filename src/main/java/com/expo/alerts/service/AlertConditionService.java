@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 import java.util.List;
 
+//l partie hedhi bch tetbadel , à savoir , instead i'll be using prometheus for the alertes
+
 @Service
 public class AlertConditionService {
 

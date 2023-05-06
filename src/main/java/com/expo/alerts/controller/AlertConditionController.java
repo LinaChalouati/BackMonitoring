@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+
+//l partie hedhi bch tetbadel , à savoir , instead i'll be using prometheus for the alertes
+
 @RestController
 @RequestMapping("/api/alerts")
 public class AlertConditionController {

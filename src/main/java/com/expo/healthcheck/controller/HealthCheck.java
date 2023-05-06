@@ -1,5 +1,6 @@
-package com.expo.project.controller;
+package com.expo.healthcheck.controller;
 
+import com.expo.healthcheck.service.HealthCheckService;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.RestartContainerCmd;
 import com.github.dockerjava.api.model.Container;
@@ -15,9 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,16 +38,10 @@ import static com.google.common.base.Predicates.equalTo;
 
 public class HealthCheck {
 
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
+        @GetMapping("/health") //json
+        public ResponseEntity<String> healthCheck() {
         String prometheusUrl = "http://localhost:9090";
         String grafanaUrl = "http://localhost:3000";
-
-
-        // @Value("${grafana.url}")
-        //public String grafanaUrl;
-
-        // @Value("${prometheus.server.url}")
 
 
         boolean isGrafanaUp = isGrafanaServiceUp(grafanaUrl);
@@ -68,15 +61,6 @@ public class HealthCheck {
 
     }
 
-    private boolean isServiceUp(String url) {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(url);
-            httpClient.execute(request);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     private boolean isGrafanaServiceUp(String url) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -101,56 +85,6 @@ public class HealthCheck {
         }
     }
 
-    @GetMapping("/servicesexist")
-    public String checkServicesExist() {
-        String command = "docker ps ";
-
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-            // System.out.println(process);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            System.out.println(process);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("prometheus") || line.equals("grafana")) {
-                    return "Services exist";
-                }
-            }
-
-            return "Services do not exist";
-        } catch (IOException e) {
-            return "Error checking services: " + e.getMessage();
-        }
-    }
-
-    @GetMapping("/imagesexist")
-    public String checkImagesExist() {
-        String[] images = {"prom/prometheus", "grafana/grafana"};
-        for (String image : images) {
-            String command = "docker image inspect " + image;
-
-            try {
-                Process process = Runtime.getRuntime().exec(command);
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                String line;
-                StringBuilder output = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
-
-                if (output.toString().equals("[]\n")) {
-                    return "Image " + image + " does not exist";
-                }
-            } catch (IOException e) {
-                return "Error checking image " + image + ": " + e.getMessage();
-            }
-        }
-
-        return "Images exist";
-    }
 
     @GetMapping("/prometheusexists")
     public Boolean checkPrometheusExists() {
@@ -202,19 +136,16 @@ public class HealthCheck {
             }
 
             if (output.toString().equals("[]\n")) {
-                //  return "Grafana image does not exist";
                 return false;
             } else {
-                //    return "Grafana image exists";
                 return true;
             }
         } catch (IOException e) {
-            //   return "Error checking Grafana image: " + e.getMessage();
             return false;
         }
     }
 
-    @GetMapping("/prometheusup")
+    @GetMapping("/prometheusup") //nzid -
     public String checkPrometheusUp() {
         String command = "docker ps";
 
@@ -235,17 +166,17 @@ public class HealthCheck {
 
 
             if (output.toString().contains("prometheus") && output.toString().contains("Up")) {
-                return "Prometheus image UP";
+                return "Prometheus Container UP";
             } else {
                 if (checkPrometheusExists()) {
-                    return "Prometheus image DOWN ";
+                    return "Prometheus Container DOWN ";
                 } else {
-                    return "Prometheus Image Does Not exist ";
+                    return "Prometheus Container Does Not exist ";
                 }
 
             }
         } catch (IOException e) {
-            return "Error checking Grafana image: " + e.getMessage();
+            return "Error checking Prometheus Container: " + e.getMessage();
         }
 
     }
@@ -271,57 +202,22 @@ public class HealthCheck {
 
 
             if (output.toString().contains("grafana") && output.toString().contains("Up")) {
-                return "Grafana image UP";
+                return "Grafana Container UP";
             } else {
                 if (checkGrafanaExists()) {
-                    return "Grafana image DOWN ";
+                    return "Grafana Container DOWN ";
                 } else {
-                    return "Grafana Image Does Not exist ";
+                    return "Grafana Container Does Not exist ";
                 }
 
             }
         } catch (IOException e) {
-            return "Error checking Grafana image: " + e.getMessage();
+            return "Error checking Grafana Container: " + e.getMessage();
         }
 
     }
 
-    @GetMapping("/restartgrafana")
-    public String RestartGrafana() {
-        String command = "docker ps";
-
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line;
-            StringBuilder output = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-                //System.out.println(line);
-
-            }
-            //  System.out.println(output.toString().contains("prometheus"));
-            // System.out.println(output.toString().contains("grafana"));
-
-
-            if (output.toString().contains("grafana")) {
-                return "Grafana image UP";
-            } else {
-                if (checkGrafanaExists()) {
-                    return "Grafana image DOWN ";
-                } else {
-                    return "Grafana Image Does Not exist ";
-                }
-
-            }
-        } catch (IOException e) {
-            return "Error checking Grafana image: " + e.getMessage();
-        }
-
-    }
-/*    @GetMapping("/imageid")
+    /*    @GetMapping("/imageid")
     public String GetImageId(String image) {
         String command="docker ps";
 
@@ -410,36 +306,16 @@ public class HealthCheck {
 
     } */
 
-    @GetMapping("/getcontainerId")
-    public void getContainerId() {
-        String containerId = "1920b11a8f40";
-
-        String command = "docker restart " + containerId;
-        System.out.println(command);
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-
-            // BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-
-            //  System.out.println(output.toString().contains("prometheus"));
-            // System.out.println(output.toString().contains("grafana"));
-
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     @GetMapping("/restartcontainer")
-    public void restartcontainer() {
-        String containerId = "1920b11a8f40";
+    public void restartContainer(@RequestParam(value="containername") String containerName) throws IOException {
+       String containerId = this.getContainerIdByName(containerName);
+    System.out.println(containerId);
 
-       // String command = "docker restart " + containerId;
-        //System.out.println(command);
-        String commandEntete=" curl --unix-socket /var/run/docker.sock -X POST ";
-        String url="http://172.18.2.202:2375/containers/"+containerId+"/restart";
+    String commandEntete=" curl --unix-socket /var/run/docker.sock -X POST ";
+       // String url="http://172.18.2.202:2375/containers/"+containerId+"/restart";
+         String url="http://localhost:2375/containers/"+containerId+"/restart";
+
         String command=commandEntete+url;
         try {
             Process process = Runtime.getRuntime().exec(command);
@@ -449,10 +325,12 @@ public class HealthCheck {
         }
 
     }
-    private static final String DOCKER_API_URL = "http://localhost:2375";
-    @GetMapping("/containeridbyname")
-    public String getContainerIdByName() throws IOException {
-        URL url = new URL("http://localhost:2375/containers/json?all=true");
+
+
+    public String getContainerIdByName(String containerName) throws IOException {
+
+
+        URL url = new URL("http://localhost:2375/containers/json?all=true"); //tansech bch tbadel l @ ip selon l serveurs mtaa actia
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -470,26 +348,20 @@ public class HealthCheck {
         for (int i = 0; i < containers.length(); i++) {
             JSONObject container = containers.getJSONObject(i);
             System.out.println("container"+container);
-       //     JSONArray names = container.getJSONArray("Image");
+            //     JSONArray names = container.getJSONArray("Name");
             String img= container.get("Image").toString();
-         //   System.out.println("names"+names);
-            if(img.contains("prom/prometheus")){
+            //   System.out.println("names"+names);
+            if(img.contains(containerName)){
                 return container.getString("Id");
             }
-           /* for (int j = 0; j < names.length(); j++) {
-                String containerName = names.getString(j);
-                if (containerName.contains("prom")) {
-                    System.out.println(container.getString("Id"));
-                    return container.getString("Id");
-                }
-            }*/
         }
 
         return null;
     }
 
 
-    }
+
+}
 
 
 

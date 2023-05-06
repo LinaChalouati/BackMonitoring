@@ -20,6 +20,9 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
+
+//l partie hedhi bch tetbadel , à savoir , instead i'll be using prometheus for the alertes
 @Service
 public class GrafanaAlertService {
 
