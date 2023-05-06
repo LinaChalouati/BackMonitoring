@@ -6,6 +6,9 @@ import lombok.Setter;
 
 import java.util.List;
 
+
+//l partie hedhi bch tetbadel , à savoir , instead i'll be using prometheus for the alertes
+
 @Getter
 @Setter
 public class GrafanaAlert {

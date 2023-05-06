@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DashboardBuilder { //service
+public class DashboardBuilder {
 
     public String buildDashboard(String title, String[] targets) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();

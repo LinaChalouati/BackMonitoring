@@ -43,28 +43,6 @@ public class GrafanaClient {
         String dashboardJson = dashboardResponse.getBody();
         return dashboardJson;
     }
-  /*  public String findDashboardById(String dashboardTitle) throws JsonProcessingException {
-        HttpEntity<String> requestEntity = this.getHeaderHttp();
-        RestTemplate restTemplate = new RestTemplate();
-        System.out.print(requestEntity);
-        ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
-
-        if (searchResponse.getStatusCodeValue() != 200) {
-            throw new RuntimeException("Failed to retrieve dashboard search result: " + searchResponse.getBody());
-        }
-        String searchResultJson = searchResponse.getBody();
-        JsonNode searchResultNode = new ObjectMapper().readTree(searchResultJson);
-        if (searchResultNode.size() == 0) {
-            throw new RuntimeException("Dashboard not found: " + dashboardTitle);
-        }
-        String dashboardId = searchResultNode.get(0).get("uid").asText();
-        ResponseEntity<String> dashboardResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardId, HttpMethod.GET, requestEntity, String.class);
-        if (dashboardResponse.getStatusCodeValue() != 200) {
-            throw new RuntimeException("Failed to retrieve dashboard: " + dashboardResponse.getBody());
-        }
-        String dashboardJson = dashboardResponse.getBody();
-        return dashboardJson;
-    }*/
 
     private HttpEntity<String> getHeaderHttp(){
         HttpHeaders headers = new HttpHeaders();
@@ -162,43 +140,21 @@ public class GrafanaClient {
             throw new RuntimeException("Dashboard delete failed: " + deleteResponse.getStatusCodeValue() + " " + deleteResponse.getBody());
         }
     }
-    //fiha mochkla
-
-    /*public void modifyDashboard(String dashboardId, String newTitle) throws JsonProcessingException {
-        // Construct the JSON payload with the new title
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode dashboardNode = objectMapper.createObjectNode();
-        ObjectNode dashboardObjectNode = dashboardNode.putObject("dashboard");
-        dashboardObjectNode.put("uid", dashboardId);
-        dashboardObjectNode.put("title", newTitle);
-        // Convert the object to JSON
-        String dashboardJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
-
-        // Update the dashboard in Grafana
-        HttpEntity<String> requestEntity = getHeaderHttp();
-        RestTemplate restTemplate = new RestTemplate();
-        String url = grafanaUrl + "api/dashboards/db";
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class, dashboardJson);
-
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new RuntimeException("Failed to update dashboard title: " + response.getBody());
-        }
-    }*/
 
     public void modifyDashboard(String dashboardTitle, String newTitle, String refresh,String timeFrom,String timeTo,String timeRange) throws JsonProcessingException {
-        // First, retrieve the existing dashboard JSON
+        //  dashboard JSON
         String dashboardJson = this.GetDashboard(dashboardTitle);
 
-        // Convert the JSON string to a JSON object using Jackson ObjectMapper
+        // conversion JSON string to a JSON object
         ObjectMapper mapper = new ObjectMapper();
         JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
 
-        // Modify the title if a new title is provided
+        // modification du titre
         if (newTitle != null && !newTitle.isEmpty()) {
             ((ObjectNode) dashboardNode).put("title", newTitle);
         }
 
-        // Modify the refresh interval if a new interval is provided
+        // Modify the refresh interval
         if (refresh != null && !refresh.isEmpty()) {
             ((ObjectNode) dashboardNode).put("refresh", refresh+"s");
         }
@@ -217,7 +173,7 @@ public class GrafanaClient {
             ((ObjectNode) dashboardNode).set("time", timeNode);
         }
 
-        // Convert the modified JSON object back to a string and update the dashboard
+        // Convert the modified JSON to string + update dashboard
         String modifiedDashboardJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
         System.out.println(modifiedDashboardJson);
 
@@ -244,8 +200,6 @@ public class GrafanaClient {
         return headers;
     }
 
-
-
     public JsonNode getDashboardByTitle(String dashboardTitle) throws JsonProcessingException {
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
@@ -266,14 +220,23 @@ public class GrafanaClient {
 
         throw new RuntimeException("Dashboard not found");
     }
+
+
+    // f actia temchili .get("dashboard").get(panels) f pc mteei .get("rows").get(0).get("panels") c donc à verifier (tested 06 Mai 2023)
+
     public List<JsonNode> GetPanels(String dashboardTitle) throws JsonProcessingException {
         String dashboardJson = this.GetDashboard(dashboardTitle);
+        //System.out.println(dashboardJson);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
         List<JsonNode> panels = new ArrayList<>();
+      //  System.out.println(dashboardNode.get("dashboard").get("rows").get(0).get("panels"));
+
         for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
             panels.add(panelNode);
         }
+
+
         System.out.println("OKKKK");
         System.out.println(panels);
 

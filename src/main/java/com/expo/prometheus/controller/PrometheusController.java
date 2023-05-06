@@ -1,13 +1,11 @@
 package com.expo.prometheus.controller;
 
 
-import com.expo.config.PrometheusConfig;
+import com.expo.prometheus.service.PrometheusConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +38,9 @@ public class PrometheusController {
 
         return prometheusConfig.getDataSourceByName(name);
     }
+
+
+    //fiha mochkla matemchich
     @PostMapping("/modifydatasource")
     public void modifyDataSource(@RequestParam (value ="name")String name,
                                      @RequestParam(value = "newurl", required = false) String newurl,

@@ -15,6 +15,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
+//kiff kiff à verifier le path du panels here
+// f actia temchili .get("dashboard").get(panels) f pc mteei .get("rows").get(0).get("panels") c donc à verifier aalech (tested 06 Mai 2023)
+//ps il y'avait un changement de la version du grafana que j'utilise donc peut etre l json à générer tbadlet l format mteeo
+
+
 @Service
 public class PanelClient {
     @Value("${grafana.url}")
@@ -25,20 +31,6 @@ public class PanelClient {
     @Autowired
     private GrafanaClient grafanaClient;
 
-  /*  public List<JsonNode> GetPanelsNames(String dashboardTitle) throws JsonProcessingException {
-        String dashboardJson = grafanaClient.GetDashboard(dashboardTitle);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
-        List<JsonNode> panels = new ArrayList<>();
-        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
-            panels.add(panelNode);
-        }
-        System.out.println("OKKKK");
-        System.out.println(panels);
-
-        return panels;
-    }
-*/
 
     private HttpEntity<String> getHeaderHttp() {
         HttpHeaders headers = new HttpHeaders();
@@ -48,7 +40,7 @@ public class PanelClient {
     }
 
     public void addPanel(String dashboardTitle,String PanelTitle,String targetExpr) throws JsonProcessingException {
-        // Fetch the dashboard ID by title from Grafana
+        // searching for l dashboard
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
@@ -88,7 +80,6 @@ public class PanelClient {
         System.out.println("panelNode"+panelNode);
 
         //System.out.println( dashboardNode.path("dashboard").path("panels"));
-        // l hne win l mochkla
         System.out.println("l final"+dashboardNode.path("dashboard").path("panels"));
 
         ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
@@ -98,7 +89,7 @@ public class PanelClient {
         System.out.println("MRIGL"+panelsNode);
 
 
-
+        //l update
         HttpHeaders updateHeaders = new HttpHeaders();
         updateHeaders.setContentType(MediaType.APPLICATION_JSON);
         updateHeaders.set("Authorization", "Bearer " + apiKey);
@@ -163,7 +154,6 @@ public class PanelClient {
     }
 
     public void updatePanel(String dashboardTitle, String panelTitle, ObjectNode updatedPanel) throws JsonProcessingException {
-        // Fetch the dashboard ID by title from Grafana
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
@@ -174,11 +164,11 @@ public class PanelClient {
         }
         String dashboardId = searchResultNode.get(0).get("uid").asText();
 
-        // Fetch the dashboard JSON from Grafana
+        // get dashboard JSON from Grafana
         ResponseEntity<String> dashboardResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardId, HttpMethod.GET, requestEntity, String.class);
         String dashboardJson = dashboardResponse.getBody();
 
-        // Update the dashboard JSON with the new panel
+        // Update the dashboard JSON pour le new panel
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
         ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
@@ -189,7 +179,7 @@ public class PanelClient {
             }
         }
 
-        // Send the updated dashboard JSON to Grafana
+        // Send the updated JSON to Grafana
         HttpHeaders updateHeaders = new HttpHeaders();
         updateHeaders.setContentType(MediaType.APPLICATION_JSON);
         updateHeaders.set("Authorization", "Bearer " + apiKey);
@@ -205,18 +195,24 @@ public class PanelClient {
     }
 
     public void modifyPanel(String dashboardTitle, int panelId, String newTitle, String newType) throws Exception {
-        // First, retrieve the existing dashboard JSON
+        //  dashboard JSON
         String dashboardJson = grafanaClient.GetDashboard(dashboardTitle);
+        //     System.out.println(dashboardJson);
 
-        // Convert the JSON string to a JSON object using Jackson ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
+        //kifkif lehne à verifier l'arborescence taa l champs panels
+      //  JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
+
+        JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard").get("rows").get(0);
+        System.out.println(dashboardNode);
       //  System.out.println(dashboardNode.get("dashboard").get("panels"));
         // Find the panel to modify based on the panel ID
         JsonNode panelNode = null;
         for (JsonNode panel : dashboardNode.get("panels")) {
             if (panel.get("id").asInt() == panelId) {
                 panelNode = panel;
+                System.out.println(panelNode); //OK
+
                 break;
             }
         }
@@ -233,14 +229,10 @@ public class PanelClient {
             ((ObjectNode) panelNode).put("type", newType);
         }
 
-
-
         String modifiedDashboardJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
-
         grafanaClient.updateDashboard(modifiedDashboardJson);
 
     }
-
     public JsonNode getPanelByTitle(String dashboardTitle, String panelTitle) throws JsonProcessingException {
         HttpEntity<String> requestEntity = getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
@@ -254,11 +246,10 @@ public class PanelClient {
         }
         String dashboardId = searchResultNode.get(0).get("uid").asText();
 
-        // Get the dashboard JSON
+        // dashboard JSON
         ResponseEntity<String> dashboardResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardId, HttpMethod.GET, requestEntity, String.class);
         String dashboardJson = dashboardResponse.getBody();
 
-        // Find the panel with the given title in the dashboard JSON
         JsonNode dashboardNode = new ObjectMapper().readTree(dashboardJson);
         JsonNode panelsNode = dashboardNode.get("dashboard").get("panels");
         for (JsonNode panelNode : panelsNode) {
@@ -302,28 +293,23 @@ public class PanelClient {
         throw new RuntimeException("Panel not found with title: " + panelId);
     }
     public String getPanelIdByTitle(String dashboardTitle, String panelTitle) throws IOException {
-        // Get headers and set up RestTemplate
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
 
-        // Get dashboard ID
         String dashboardUid = grafanaClient.getDashboardUidByTitle(dashboardTitle);
 
-        // Search for panels in the dashboard
+        // Search for l panels in the dashboard
         ResponseEntity<String> panelSearchResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardUid, HttpMethod.GET, requestEntity, String.class);
         JsonNode dashboardJson = new ObjectMapper().readTree(panelSearchResponse.getBody());
         JsonNode panels = dashboardJson.at("/dashboard/panels");
-        //System.out.println(dashboardJson);
+        System.out.println(panels);
 
-        // Iterate through the panels to find the one with matching title
         for (JsonNode panel : panels) {
             if (panel.get("title").asText().equals(panelTitle)) {
                 System.out.println(panel.get("id").asText());
                 return panel.get("id").asText();
             }
         }
-
-        // If panel with matching title not found, throw exception
         throw new RuntimeException("Panel not found: " + panelTitle);
     }
 

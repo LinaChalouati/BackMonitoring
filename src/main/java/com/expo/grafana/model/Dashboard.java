@@ -19,8 +19,7 @@ public class Dashboard {
     private Long id;
 
     private String title;
-   // private String JsonPayLoad;
- //   private String panel;
+
 
     public Dashboard() {
 
