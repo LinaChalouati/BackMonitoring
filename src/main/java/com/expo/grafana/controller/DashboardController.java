@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.expo.grafana.service.GrafanaClient;
 import com.expo.grafana.service.PanelClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 //ps il y'avait un changement de la version du grafana que j'utilise donc peut etre l json à générer tbadlet l format mteeo
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 public class DashboardController {
 
     @Autowired
@@ -80,8 +83,8 @@ public class DashboardController {
         }
     }
 
-        @PostMapping("/getpanels")
-    public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException {
+            @PostMapping("/getpanels")
+        public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException {
 
         return  grafanaClient.GetPanels(dashboardTitle);
 
@@ -110,6 +113,25 @@ public class DashboardController {
     @PostMapping("/getDashboard")
     public JsonNode findDashbordByTitle(@RequestParam (value="dashboardTitle")String dashboardTitle) throws JsonProcessingException {
      return  grafanaClient.getDashboardByTitle(dashboardTitle);
+    }
+    @GetMapping("/get-template-uid")
+    public JsonNode getTemplateUidByTitle() throws IOException {
+    String Uid= grafanaClient.getDashboardUidByTitle("template");
+        ObjectMapper objectMapper=new ObjectMapper();
+        ObjectNode rootNode=objectMapper.createObjectNode();
+        rootNode.put("uid",Uid);
+        JsonNode jsonNode=rootNode;
+        return jsonNode;
+
+    }
+    @GetMapping("/{title}/panels")
+    public ResponseEntity<List<String>> getAllPanelsId(@PathVariable String title) throws JsonProcessingException {
+        List<String> panels = grafanaClient.getAllPanelIds(title);
+        if (panels.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<>(panels, HttpStatus.OK);
+        }
     }
 
 }

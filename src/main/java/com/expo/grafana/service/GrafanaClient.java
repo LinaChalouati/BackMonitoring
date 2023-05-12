@@ -25,7 +25,7 @@ public class GrafanaClient {
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
       //  System.out.print(requestEntity);
-        ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+        ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle+ "&type=dash-db", HttpMethod.GET, requestEntity, String.class);
 
         if (searchResponse.getStatusCodeValue() != 200) {
             throw new RuntimeException("Failed to retrieve dashboard search result: " + searchResponse.getBody());
@@ -75,7 +75,7 @@ public class GrafanaClient {
       HttpEntity<String> requestEntity=this.getHeaderHttp();
       RestTemplate restTemplate = new RestTemplate();
       System.out.println(restTemplate);
-      ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+      ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle + "&type=dash-db", HttpMethod.GET, requestEntity, String.class);
       //System.out.println("l response"+response);
 
       JsonNode root = new ObjectMapper().readTree(response.getBody());
@@ -93,7 +93,11 @@ public class GrafanaClient {
         HttpEntity<String> requestEntity=this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
         System.out.println(restTemplate);
-        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+        //l makenech aandi folder
+     //   ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle + "&type=dash-db", HttpMethod.GET, requestEntity, String.class);
+
         //System.out.println("l response"+response);
 
         JsonNode root = new ObjectMapper().readTree(response.getBody());
@@ -242,6 +246,19 @@ public class GrafanaClient {
 
         return panels;
     }
+    public List<String> getAllPanelIds(String dashboardTitle) throws JsonProcessingException {
+        String dashboardJson = this.GetDashboard(dashboardTitle);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
+        List<String> panelIds = new ArrayList<>();
+
+        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+            panelIds.add(panelNode.get("id").asText());
+        }
+
+        return panelIds;
+    }
+
 
 
 }
