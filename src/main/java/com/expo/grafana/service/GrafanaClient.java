@@ -43,6 +43,25 @@ public class GrafanaClient {
         String dashboardJson = dashboardResponse.getBody();
         return dashboardJson;
     }
+    public boolean doesDashboardExist(String dashboardTitle) throws JsonProcessingException {
+        HttpEntity<String> requestEntity = this.getHeaderHttp();
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> searchResponse = restTemplate.exchange(
+                grafanaUrl + "api/search?query=" + dashboardTitle + "&type=dash-db",
+                HttpMethod.GET,
+                requestEntity,
+                String.class
+        );
+
+        if (searchResponse.getStatusCodeValue() == 200) {
+            String searchResultJson = searchResponse.getBody();
+            JsonNode searchResultNode = new ObjectMapper().readTree(searchResultJson);
+            return searchResultNode.size() > 0; // Returns true if any dashboards match the given title
+        } else {
+            throw new RuntimeException("Failed to retrieve dashboard search result: " + searchResponse.getBody());
+        }
+    }
+
 
     private HttpEntity<String> getHeaderHttp(){
         HttpHeaders headers = new HttpHeaders();
@@ -236,7 +255,8 @@ public class GrafanaClient {
         List<JsonNode> panels = new ArrayList<>();
       //  System.out.println(dashboardNode.get("dashboard").get("rows").get(0).get("panels"));
 
-        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+      //  for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+        for (JsonNode panelNode : dashboardNode.get("dashboard").get("rows").get(0).get("panels")) {
             panels.add(panelNode);
         }
 

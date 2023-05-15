@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 
@@ -33,16 +32,23 @@ public class DashboardController {
     @Autowired
     private PanelClient panelClient;
 
-   @PostMapping("/dashboard")
-       public void createDashboard(@RequestParam(value = "title") String title,
-                                   @RequestParam(value = "targets") String[] targets) throws JsonProcessingException {
-           String jsonPayload = dashboardBuilder.buildDashboard(title, targets);
-           grafanaClient.createDashboard(jsonPayload);
-           System.out.println(jsonPayload);
-       }
+    @PostMapping("/dashboard")
+    public ResponseEntity<String> createDashboard(@RequestParam(value = "title") String title,
+                                                  @RequestParam(value = "targets") String[] targets) throws JsonProcessingException {
+        if (grafanaClient.doesDashboardExist(title)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Dashboard already exists");
+        }
+
+        String jsonPayload = dashboardBuilder.buildDashboard(title, targets);
+        grafanaClient.createDashboard(jsonPayload);
+        System.out.println(jsonPayload);
+
+        return ResponseEntity.ok("Dashboard created successfully");
+    }
+
     @PostMapping("/panel")
     public void addPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,@RequestParam(value = "PanelTitle") String PanelTitle,
-                         @RequestParam(value = "target") String targetExpr) throws IOException {
+                         @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart) throws IOException {
         System.out.println(PanelTitle);
 
        /* In case of l input dashboardid and not l title
@@ -52,7 +58,7 @@ public class DashboardController {
             throw new RuntimeException("Dashboard not found");
         }
 */
-        panelClient.addPanel(dashboardTitle,PanelTitle, targetExpr);
+        panelClient.addPanel(dashboardTitle,PanelTitle, targetExpr, chart);
     }
     @PostMapping("/deletePanel")
     public void deletePanel(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelTitle")String panelTitle) throws JsonProcessingException{

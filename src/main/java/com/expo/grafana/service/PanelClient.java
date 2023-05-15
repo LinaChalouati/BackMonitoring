@@ -39,7 +39,7 @@ public class PanelClient {
         return new HttpEntity<>(headers);
     }
 
-    public void addPanel(String dashboardTitle,String PanelTitle,String targetExpr) throws JsonProcessingException {
+    public void addPanel(String dashboardTitle,String PanelTitle,String targetExpr,String chart) throws JsonProcessingException {
         // searching for l dashboard
         HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
@@ -67,7 +67,7 @@ public class PanelClient {
         // Create l new panel
         ObjectNode panelNode = objectMapper.createObjectNode();
         panelNode.put("title", PanelTitle);
-        panelNode.put("type", "graph");
+        panelNode.put("type", chart);
         panelNode.put("datasource", "Prometheus");
 
         ArrayNode targetsNode = objectMapper.createArrayNode();
@@ -80,9 +80,9 @@ public class PanelClient {
         System.out.println("panelNode"+panelNode);
 
         //System.out.println( dashboardNode.path("dashboard").path("panels"));
-        System.out.println("l final"+dashboardNode.path("dashboard").path("panels"));
+        System.out.println("l final"+dashboardNode.path("dashboard").path("rows").get(0).path("panels"));
 
-        ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("rows").get(0).path("panels");
         System.out.println("panelsNode"+panelsNode);
 
         panelsNode.add(panelNode);
