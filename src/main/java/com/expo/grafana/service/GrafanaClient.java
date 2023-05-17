@@ -75,6 +75,7 @@ public class GrafanaClient {
     public void createDashboard(String jsonPayload) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dashboard = objectMapper.readValue(jsonPayload, ObjectNode.class);
+       // dashboard.put("overwrite", true);
 
         ObjectNode requestPayload = objectMapper.createObjectNode();
         requestPayload.set("dashboard", dashboard);
@@ -109,26 +110,25 @@ public class GrafanaClient {
       return dashboardId;
   }
     public String getDashboardUidByTitle(String dashboardTitle) throws IOException {
-        HttpEntity<String> requestEntity=this.getHeaderHttp();
+        HttpEntity<String> requestEntity = this.getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
-        System.out.println(restTemplate);
-        //l makenech aandi folder
-     //   ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
+        System.out.println(dashboardTitle);
 
-        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle + "&type=dash-db", HttpMethod.GET, requestEntity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle.toString() + "&type=dash-db", HttpMethod.GET, requestEntity, String.class);
+        System.out.println(response);
+        String responseBody = response.getBody();
+        try {
+            JsonNode root = new ObjectMapper().readTree(responseBody);
+            JsonNode firstResult = root.get(0);
+            System.out.println(firstResult);
 
-        //System.out.println("l response"+response);
-
-        JsonNode root = new ObjectMapper().readTree(response.getBody());
-        //System.out.println(root);
-
-        JsonNode firstResult = root.get(0);
-        //System.out.println(firstResult);
-
-        String dashboardUid = firstResult.get("uid").asText();
-        //System.out.println("id"+dashboardId);
-
-        return dashboardUid;
+            String dashboardUid = firstResult.get("uid").asText();
+            return dashboardUid;
+        } catch (IOException e) {
+            // Print the exception message or stack trace to identify the cause
+            e.printStackTrace();
+            throw e; // Rethrow the exception or handle it accordingly
+        }
     }
 
 
@@ -255,8 +255,8 @@ public class GrafanaClient {
         List<JsonNode> panels = new ArrayList<>();
       //  System.out.println(dashboardNode.get("dashboard").get("rows").get(0).get("panels"));
 
-      //  for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
-        for (JsonNode panelNode : dashboardNode.get("dashboard").get("rows").get(0).get("panels")) {
+        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+     //   for (JsonNode panelNode : dashboardNode.get("dashboard").get("rows").get(0).get("panels")) {
             panels.add(panelNode);
         }
 
@@ -271,14 +271,26 @@ public class GrafanaClient {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
         List<String> panelIds = new ArrayList<>();
+       // System.out.println("get all panels"+dashboardNode.path("dashboard").path("rows").path(0).has("panels"));
+        System.out.println("get all panels"+dashboardNode.path("dashboard").has("panels"));
 
-        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
-            panelIds.add(panelNode.get("id").asText());
+        if (dashboardNode.path("dashboard").has("panels")) {
+            JsonNode panelsNode = dashboardNode.path("dashboard").path("panels");
+            if (panelsNode.isArray()) {
+                for (JsonNode panelNode : panelsNode) {
+                    panelIds.add(panelNode.get("id").asText());
+                }
+            }
         }
 
         return panelIds;
     }
 
+
+    /*public List<String >getAllPanelIds(String dashboardTitle) throws  JsonProcessingException{
+
+    }
+*/
 
 
 }

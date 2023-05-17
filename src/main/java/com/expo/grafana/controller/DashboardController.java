@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -33,8 +34,11 @@ public class DashboardController {
     private PanelClient panelClient;
 
     @PostMapping("/dashboard")
-    public ResponseEntity<String> createDashboard(@RequestParam(value = "title") String title,
-                                                  @RequestParam(value = "targets") String[] targets) throws JsonProcessingException {
+    public ResponseEntity<?> createDashboard(@RequestParam(value = "title") String projectName,
+                                             @RequestParam(value = "targets") String[] targets) throws JsonProcessingException {
+        // Use the projectName as the title
+        String title = projectName;
+
         if (grafanaClient.doesDashboardExist(title)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Dashboard already exists");
         }
@@ -43,13 +47,15 @@ public class DashboardController {
         grafanaClient.createDashboard(jsonPayload);
         System.out.println(jsonPayload);
 
-        return ResponseEntity.ok("Dashboard created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
 
     @PostMapping("/panel")
     public void addPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,@RequestParam(value = "PanelTitle") String PanelTitle,
                          @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart) throws IOException {
         System.out.println(PanelTitle);
+        Integer id=1;
 
        /* In case of l input dashboardid and not l title
         String dashboardId = grafanaClient.getDashboardIdByTitle(dashboardTitle);
@@ -57,8 +63,17 @@ public class DashboardController {
         if (dashboardId == null) {
             throw new RuntimeException("Dashboard not found");
         }
-*/
-        panelClient.addPanel(dashboardTitle,PanelTitle, targetExpr, chart);
+
+*/      System.out.println("fl controller"+grafanaClient.getAllPanelIds(dashboardTitle).isEmpty());
+        if(! grafanaClient.getAllPanelIds(dashboardTitle).isEmpty()){
+            List<String> panels = grafanaClient.getAllPanelIds(dashboardTitle);
+            Collections.sort(panels);
+            id=Integer.valueOf(panels.get(panels.size() - 1) )+1;
+            }
+
+
+
+        panelClient.addPanel(dashboardTitle,PanelTitle, targetExpr, chart,id );
     }
     @PostMapping("/deletePanel")
     public void deletePanel(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelTitle")String panelTitle) throws JsonProcessingException{
@@ -89,11 +104,10 @@ public class DashboardController {
         }
     }
 
-            @PostMapping("/getpanels")
+    @PostMapping("/getpanels")
         public List<JsonNode> getPanels(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException {
 
         return  grafanaClient.GetPanels(dashboardTitle);
-
 
         }
 
@@ -130,14 +144,33 @@ public class DashboardController {
         return jsonNode;
 
     }
-    @GetMapping("/{title}/panels")
-    public ResponseEntity<List<String>> getAllPanelsId(@PathVariable String title) throws JsonProcessingException {
+
+    @PostMapping("/dashboard-uid")
+    public ResponseEntity<JsonNode> getDashboardUid(@RequestParam("dashboardTitle") String dashboardTitle) throws IOException {
+        String uid = grafanaClient.getDashboardUidByTitle(dashboardTitle);
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode rootNode = objectMapper.createObjectNode();
+        if (uid != null) {
+            rootNode.put("uid", uid);
+        }
+        JsonNode jsonNode = rootNode;
+        System.out.println(jsonNode);
+        return ResponseEntity.ok(jsonNode);
+    }
+
+
+    @GetMapping("/allpanels")
+    public ResponseEntity<List<String>> getAllPanelsId(@RequestParam("dashboardTitle") String title) throws JsonProcessingException {
         List<String> panels = grafanaClient.getAllPanelIds(title);
         if (panels.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         } else {
-            return new ResponseEntity<>(panels, HttpStatus.OK);
+            return ResponseEntity.ok(panels);
         }
     }
+
+
+
+
 
 }

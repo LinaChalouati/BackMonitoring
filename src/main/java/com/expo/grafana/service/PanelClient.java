@@ -39,9 +39,9 @@ public class PanelClient {
         return new HttpEntity<>(headers);
     }
 
-    public void addPanel(String dashboardTitle,String PanelTitle,String targetExpr,String chart) throws JsonProcessingException {
-        // searching for l dashboard
-        HttpEntity<String> requestEntity = this.getHeaderHttp();
+    public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id) throws JsonProcessingException {
+        // Searching for the dashboard
+        HttpEntity<String> requestEntity = getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> searchResponse = restTemplate.exchange(grafanaUrl + "api/search?query=" + dashboardTitle, HttpMethod.GET, requestEntity, String.class);
         String searchResultJson = searchResponse.getBody();
@@ -49,24 +49,29 @@ public class PanelClient {
         if (searchResultNode.size() == 0) {
             throw new RuntimeException("Dashboard not found");
         }
-        // System.out.println(PanelTitle);
-        System.out.println("AHHHHHH"+searchResultNode);
         String dashboardId = searchResultNode.get(0).get("uid").asText();
-        System.out.println("lid"+dashboardId);
-        //njib l json taa l dashboard
-        // dashboardId="FkFZ5nPVz";
-        ResponseEntity<String> dashboardResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardId, HttpMethod.GET, requestEntity, String.class);
+
+        // Retrieve the current dashboard JSON
+        ResponseEntity<String> dashboardResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/uid/" + dashboardId+"?overwrite=true", HttpMethod.GET, requestEntity, String.class);
         String dashboardJson = dashboardResponse.getBody();
-        System.out.println("dashboardJson"+dashboardJson);
 
         // Update the dashboard JSON with the new panel
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
-        System.out.println("dashboardNode"+dashboardNode);
 
-        // Create l new panel
+        // Check if the dashboard structure is valid
+
+        JsonNode dashboardPanelNode = dashboardNode.path("dashboard").path("panels");
+        System.out.println("l mochkla lena");
+        if (!dashboardPanelNode.isArray()) {
+            throw new RuntimeException("Invalid dashboard structure: panels array is missing");
+        }
+
+        // Create a new panel
         ObjectNode panelNode = objectMapper.createObjectNode();
-        panelNode.put("title", PanelTitle);
+        panelNode.put("title", panelTitle);
+        panelNode.put("id", id);
+
         panelNode.put("type", chart);
         panelNode.put("datasource", "Prometheus");
 
@@ -77,29 +82,24 @@ public class PanelClient {
 
         panelNode.set("targets", targetsNode);
 
-        System.out.println("panelNode"+panelNode);
-
-        //System.out.println( dashboardNode.path("dashboard").path("panels"));
-        System.out.println("l final"+dashboardNode.path("dashboard").path("rows").get(0).path("panels"));
-
-        ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("rows").get(0).path("panels");
-        System.out.println("panelsNode"+panelsNode);
-
-        panelsNode.add(panelNode);
-        System.out.println("MRIGL"+panelsNode);
+        // Add the panel to the panels array
+        ((ArrayNode) dashboardPanelNode).add(panelNode);
+        dashboardNode.put("overwrite", true);
 
 
-        //l update
+        // Send the updated dashboard JSON to the server
         HttpHeaders updateHeaders = new HttpHeaders();
         updateHeaders.setContentType(MediaType.APPLICATION_JSON);
         updateHeaders.set("Authorization", "Bearer " + apiKey);
         HttpEntity<String> updateRequestEntity = new HttpEntity<>(objectMapper.writeValueAsString(dashboardNode), updateHeaders);
-        System.out.println("lupdate"+updateRequestEntity);
-        ResponseEntity<String> updateResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/db/", HttpMethod.POST, updateRequestEntity, String.class);
+        System.out.println(dashboardNode);
+        ResponseEntity<String> updateResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/db", HttpMethod.POST, updateRequestEntity, String.class);
 
         // Check if the update was successful
         if (updateResponse.getStatusCode().is2xxSuccessful()) {
             System.out.println("Dashboard updated successfully");
+
+
         } else {
             throw new RuntimeException("Dashboard update failed: " + updateResponse.getStatusCodeValue() + " " + updateResponse.getBody());
         }

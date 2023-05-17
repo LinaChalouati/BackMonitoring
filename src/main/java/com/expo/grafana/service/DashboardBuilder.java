@@ -14,6 +14,8 @@ public class DashboardBuilder {
         ObjectNode rootNode = objectMapper.createObjectNode();
         rootNode.put("title", title);
         System.out.println("l title" + title);
+        rootNode.put("overwrite", true);
+
         System.out.println("mrigl fl dashboard builder");
 
         ArrayNode rowsNode = objectMapper.createArrayNode();
@@ -40,6 +42,7 @@ public class DashboardBuilder {
         rowNode.set("panels", panelsNode);
         rowsNode.add(rowNode);
         rootNode.set("rows", rowsNode);
+
         System.out.println("l json" + objectMapper.writeValueAsString(rootNode));
         return objectMapper.writeValueAsString(rootNode);
     }
