@@ -7,6 +7,7 @@ import com.expo.grafana.service.GrafanaClient;
 import com.expo.grafana.service.PanelClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.dockerjava.api.exception.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import java.util.List;
 //ps il y'avait un changement de la version du grafana que j'utilise donc peut etre l json à générer tbadlet l format mteeo
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class DashboardController {
 
     @Autowired
@@ -57,14 +58,7 @@ public class DashboardController {
         System.out.println(PanelTitle);
         Integer id=1;
 
-       /* In case of l input dashboardid and not l title
-        String dashboardId = grafanaClient.getDashboardIdByTitle(dashboardTitle);
-        System.out.println(dashboardId);
-        if (dashboardId == null) {
-            throw new RuntimeException("Dashboard not found");
-        }
-
-*/      System.out.println("fl controller"+grafanaClient.getAllPanelIds(dashboardTitle).isEmpty());
+      //System.out.println("fl controller"+grafanaClient.getAllPanelIds(dashboardTitle).isEmpty());
         if(! grafanaClient.getAllPanelIds(dashboardTitle).isEmpty()){
             List<String> panels = grafanaClient.getAllPanelIds(dashboardTitle);
             Collections.sort(panels);
@@ -80,6 +74,21 @@ public class DashboardController {
 
         panelClient.deletePanel(dashboardTitle, panelTitle);
 
+    }
+    @DeleteMapping("/delete-Panel")
+    public ResponseEntity<?> deletePanelById(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelId")String panelId) throws JsonProcessingException{
+
+        if (dashboardTitle =="" || panelId=="") {
+           // throw new BadRequestException("The dashboard title is required.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        }
+
+
+        panelClient.deletePanelById(dashboardTitle, panelId);
+
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
     @PostMapping("/deleteDashboard")
     public void deleteDashboard(@RequestParam (value="dashboardTitle") String dashboardTitle) throws JsonProcessingException{
