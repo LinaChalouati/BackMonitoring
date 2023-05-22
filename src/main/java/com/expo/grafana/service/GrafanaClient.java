@@ -254,8 +254,15 @@ public class GrafanaClient {
         JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
         List<JsonNode> panels = new ArrayList<>();
       //  System.out.println(dashboardNode.get("dashboard").get("rows").get(0).get("panels"));
+        JsonNode panelNodes;
+        if( dashboardNode.get("dashboard").get("panels").isEmpty()) {
+            panelNodes=dashboardNode.get("dashboard").get("rows").get(0).get("panels");
+        }
+       else{
+            panelNodes=dashboardNode.get("dashboard").get("panels");
 
-        for (JsonNode panelNode : dashboardNode.get("dashboard").get("panels")) {
+        }
+        for (JsonNode panelNode : panelNodes) {
      //   for (JsonNode panelNode : dashboardNode.get("dashboard").get("rows").get(0).get("panels")) {
             panels.add(panelNode);
         }
@@ -281,6 +288,15 @@ public class GrafanaClient {
                     panelIds.add(panelNode.get("id").asText());
                 }
             }
+        }
+        else{
+                JsonNode panelsNode = dashboardNode.path("dashboard").get("rows").get(0).path("panels");
+                if (panelsNode.isArray()) {
+                    for (JsonNode panelNode : panelsNode) {
+                        panelIds.add(panelNode.get("id").asText());
+                    }
+                }
+
         }
 
         return panelIds;

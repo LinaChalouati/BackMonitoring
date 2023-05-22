@@ -40,6 +40,7 @@ public class PanelClient {
     }
 
     public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id) throws JsonProcessingException {
+        JsonNode dashboardPanelNode;
         // Searching for the dashboard
         HttpEntity<String> requestEntity = getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
@@ -60,12 +61,13 @@ public class PanelClient {
         ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
 
         // Check if the dashboard structure is valid
-
-        JsonNode dashboardPanelNode = dashboardNode.path("dashboard").path("panels");
-        System.out.println("l mochkla lena");
-        if (!dashboardPanelNode.isArray()) {
-            throw new RuntimeException("Invalid dashboard structure: panels array is missing");
+        if (dashboardNode.path("dashboard").path("rows").get(0).path("panels").isArray()){
+             dashboardPanelNode = dashboardNode.path("dashboard").path("rows").get(0).path("panels");
         }
+        else {
+            dashboardPanelNode = dashboardNode.path("dashboard").path("panels");
+        }
+
 
         // Create a new panel
         ObjectNode panelNode = objectMapper.createObjectNode();
@@ -123,7 +125,14 @@ public class PanelClient {
         String dashboardJson = dashboardResponse.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
-        ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        ArrayNode panelsNode;
+
+        if (dashboardNode.path("dashboard").path("panels").isArray()) {
+            panelsNode =(ArrayNode) dashboardNode.path("dashboard").path("rows").get(0).path("panels");
+        } else {
+            panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        }
+
         System.out.println("panelsNode"+panelsNode);
         boolean panelDeleted = false;
         for (int i = 0; i < panelsNode.size(); i++) {
@@ -171,7 +180,14 @@ public class PanelClient {
         // Update the dashboard JSON pour le new panel
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
-        ArrayNode panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        ArrayNode panelsNode;
+
+        if (dashboardNode.path("dashboard").path("panels").isArray()) {
+            panelsNode =(ArrayNode) dashboardNode.path("dashboard").path("rows").get(0).path("panels");
+        } else {
+            panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        }
+
         for (JsonNode panelNode : panelsNode) {
             if (panelNode.path("title").asText().equals(panelTitle)) {
                 ((ObjectNode) panelNode).setAll(updatedPanel);
@@ -199,16 +215,27 @@ public class PanelClient {
         String dashboardJson = grafanaClient.GetDashboard(dashboardTitle);
         //     System.out.println(dashboardJson);
 
-        ObjectMapper mapper = new ObjectMapper();
         //kifkif lehne à verifier l'arborescence taa l champs panels
-      //  JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
+        //  JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
 
-        JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard").get("rows").get(0);
-        System.out.println(dashboardNode);
-      //  System.out.println(dashboardNode.get("dashboard").get("panels"));
+        // JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard").get("rows").get(0);
+        //   System.out.println(dashboardNode);
+        //  System.out.println(dashboardNode.get("dashboard").get("panels"));
         // Find the panel to modify based on the panel ID
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
+        ArrayNode panelsNode;
+
+        if (dashboardNode.path("dashboard").path("panels").isArray()) {
+            panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("rows").get(0).path("panels");
+        } else {
+            panelsNode = (ArrayNode) dashboardNode.path("dashboard").path("panels");
+        }
+
+
         JsonNode panelNode = null;
-        for (JsonNode panel : dashboardNode.get("panels")) {
+        for (JsonNode panel : panelsNode) {
             if (panel.get("id").asInt() == panelId) {
                 panelNode = panel;
                 System.out.println(panelNode); //OK
@@ -229,10 +256,13 @@ public class PanelClient {
             ((ObjectNode) panelNode).put("type", newType);
         }
 
-        String modifiedDashboardJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
+        String modifiedDashboardJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
         grafanaClient.updateDashboard(modifiedDashboardJson);
 
     }
+
+
+    // mazelt masta3malthech fl front
     public JsonNode getPanelByTitle(String dashboardTitle, String panelTitle) throws JsonProcessingException {
         HttpEntity<String> requestEntity = getHeaderHttp();
         RestTemplate restTemplate = new RestTemplate();
@@ -282,7 +312,19 @@ public class PanelClient {
 
         // wini l panel fl dashboard JSON
         JsonNode dashboardNode = new ObjectMapper().readTree(dashboardJson);
-        JsonNode panelsNode = dashboardNode.get("dashboard").get("panels");
+        JsonNode panelsNode;
+                //= dashboardNode.get("dashboard").get("panels");
+
+
+        if(dashboardNode.get("dashboard").get("panels").isEmpty())
+        {
+            panelsNode=dashboardNode.get("dashboard").get("rows").get(0).get("panels");
+        }
+        else {
+            panelsNode=dashboardNode.get("dashboard").get("panels");
+
+        }
+
         for (JsonNode panelNode : panelsNode) {
             if (panelNode.get("id").asText().equals(panelId)) {
              //   System.out.println(panelNode.toString());
