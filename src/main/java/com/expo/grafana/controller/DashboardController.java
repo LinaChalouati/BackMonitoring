@@ -1,6 +1,7 @@
 package com.expo.grafana.controller;
 
 import com.expo.grafana.service.DashboardBuilder;
+import com.expo.prometheus.service.PrometheusQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.expo.grafana.service.GrafanaClient;
@@ -33,6 +34,8 @@ public class DashboardController {
     private GrafanaClient grafanaClient;
     @Autowired
     private PanelClient panelClient;
+    @Autowired
+    private PrometheusQuery prometheusQuery;
 
     @PostMapping("/dashboard")
     public ResponseEntity<?> createDashboard(@RequestParam(value = "title") String projectName,
@@ -54,7 +57,11 @@ public class DashboardController {
 
     @PostMapping("/panel")
     public void addPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,@RequestParam(value = "PanelTitle") String PanelTitle,
-                         @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart) throws IOException {
+                         @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart,
+                        @RequestParam(value="ip")String ip,
+                         @RequestParam(value="port")String port)                                                    throws IOException {
+
+
         System.out.println(PanelTitle);
         Integer id=1;
 
@@ -64,10 +71,10 @@ public class DashboardController {
             Collections.sort(panels);
             id=Integer.valueOf(panels.get(panels.size() - 1) )+1;
             }
+        String target=this.prometheusQuery.getQueryExpression(targetExpr,ip,port);
 
 
-
-        panelClient.addPanel(dashboardTitle,PanelTitle, targetExpr, chart,id );
+        panelClient.addPanel(dashboardTitle,PanelTitle, target, chart,id );
     }
     @PostMapping("/deletePanel")
     public void deletePanel(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelTitle")String panelTitle) throws JsonProcessingException{

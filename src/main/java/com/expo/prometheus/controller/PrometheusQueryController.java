@@ -5,23 +5,25 @@ import com.expo.prometheus.model.PrometheusResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.RequestParam;
+import springfox.documentation.spring.web.json.Json;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 public class PrometheusQueryController {
-    @Value("${prometheus.server.url}")
-    private String prometheus_url;
+    //@Value("${prometheus.server.url}")
+    //private String prometheus_url;
+    private String prometheus_url="http://172.18.3.220:9090/";
 
     @GetMapping("/metrics")
     public String getMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) {
@@ -34,19 +36,56 @@ public class PrometheusQueryController {
         return response;
     }
     @GetMapping("/allmetrics")
-    public String getAllMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
-        String job = this.getJobName(ip, port);
-        System.out.println(job);
-        String url = prometheus_url + "api/v1/query?query=" + job;
-        System.out.println(url);
-
+    public JsonNode getAllMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
+        String instanceName=ip+":"+port;
+        //nchouf les instances lkol f prometheus
+        String url = prometheus_url+"api/v1/targets";
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        String body = response.getBody();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String response = restTemplate.getForObject(url, String.class);
+        JsonNode root = new ObjectMapper().readTree(body);
+        JsonNode targets = root.path("data");
+        JsonNode targets2 = targets.get("activeTargets");
 
-        return response;
+        System.out.println("targets"+targets2);
+
+        String ScrapeUrl = null;
+        //nlawej aala l url taa les metriques taa l instance eli 7ajti biha
+        for (JsonNode searchtarget : targets2) {
+            if(searchtarget.path("labels").get("instance").asText().equals(instanceName)){
+                ScrapeUrl= (searchtarget.path("scrapeUrl").asText());
+            }
+        }
+
+
+        System.out.println("ScrapeUrl"+ScrapeUrl);
+        Map<String, String> deployment = new HashMap<>();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.createObjectNode();
+
+        //nchouf  est ce que vm wala k8s cluster
+        if(ScrapeUrl!=""){
+            RestTemplate restTemplate2 = new RestTemplate();
+            ResponseEntity<String> responsemetrics = restTemplate.getForEntity(ScrapeUrl, String.class);
+            String metrics = responsemetrics.getBody();
+            if(metrics.contains("kubernetes")|| metrics.contains("pod")||metrics.contains("replicas")
+                    ||metrics.contains("node"))
+            {
+                ((ObjectNode) node).put("Deployment", "K8s Cluster");
+
+                // return "K8s";
+            }
+
+            else {
+                ((ObjectNode) node).put("Deployment", "VM");
+            }
+
+
+        }
+
+        return node;
+
     }
 
     @GetMapping("/getjob")
@@ -74,6 +113,12 @@ public class PrometheusQueryController {
         }
 
         return "Job not found";
+    }
+    @GetMapping("deployment_check")
+    public String checkwheredeployed(@RequestParam("ip") String ip, @RequestParam("port") String port){
+
+        return "";
+
     }
 
 }
