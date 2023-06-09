@@ -14,36 +14,57 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PrometheusQuery {
+    K8sClusterQuery VmQuery=  new K8sClusterQuery();
 
-    Map<String ,String> VmQuery=new HashMap<>();
+
+    Map<String ,String> VmMap=VmQuery.getQuery();
     K8sClusterQuery K8sQuery=  new K8sClusterQuery();
+    Map<String ,String> K8sMap=K8sQuery.getQuery();
+
     OtherQuery OtherQuery=new OtherQuery();
+    Map<String ,String> OtherQueryMap=OtherQuery.getQuery();
+    public String prometheus_url="http://172.18.3.220:9090/";
 
 
+    public String getQueryExpression(String indiceexpr, String ip, String port) throws JsonProcessingException {
+        System.out.println("lena");
 
+        String instance = ip + ":" + port;
+        System.out.println("targetindice"+indiceexpr);
 
+        System.out.println("instance"+instance);
 
+        if (OtherQueryMap.containsKey(indiceexpr)) {
+            String expr=OtherQueryMap.get(indiceexpr);
+            expr = expr.replaceAll("%s", instance);
 
-    public String getQueryExpression(String targetexpr,String ip,String port) throws JsonProcessingException {
-        String wheredeployment=this.getDeploymentWhere(ip, port);
-        if(wheredeployment.equals("VM")){
+            return expr;
+        } else {
+            String wheredeployment = getDeploymentWhere(ip, port);
 
+        /*   if (wheredeployment.equals("VM") && VmMap.containsKey(indiceexpr)) {
+                 String expr=VmMap.get(indiceexpr);
+                 expr = expr.replaceAll("%s", instance);
+                return expr;
+            }*/
+
+            if (wheredeployment.equals("K8s Cluster") && K8sMap.containsKey(indiceexpr)) {
+                String expr = String.format(K8sMap.get(indiceexpr), instance);
+                return expr;
+            }
         }
-        if(wheredeployment.equals("K8s Cluster")){}
-
-
 
         return "";
-
     }
 
 
     //@Value("${prometheus.server.url}")
     //private String prometheus_url;
-    public String prometheus_url="http://172.18.3.220:9090/";
     public String getDeploymentWhere(String ip,String port) throws JsonProcessingException {
         String instanceName=ip+":"+port;
         //nchouf les instances lkol f prometheus
