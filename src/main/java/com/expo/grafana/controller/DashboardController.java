@@ -59,7 +59,7 @@ public class DashboardController {
     public void addPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,@RequestParam(value = "PanelTitle") String PanelTitle,
                          @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart,
                         @RequestParam(value="ip")String ip,
-                         @RequestParam(value="port")String port)                                                    throws IOException {
+                         @RequestParam(value="port")String port,@RequestParam(value = "tag")String tag)                                                    throws IOException {
 
 
         System.out.println(PanelTitle);
@@ -74,7 +74,7 @@ public class DashboardController {
         String target=this.prometheusQuery.getQueryExpression(targetExpr,ip,port);
 
 
-        panelClient.addPanel(dashboardTitle,PanelTitle, target, chart,id );
+        panelClient.addPanel(dashboardTitle,PanelTitle, target, chart,id ,tag);
     }
     @PostMapping("/deletePanel")
     public void deletePanel(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelTitle")String panelTitle) throws JsonProcessingException{

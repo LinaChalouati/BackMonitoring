@@ -41,7 +41,7 @@ public class PanelClient {
         return new HttpEntity<>(headers);
     }
 
-    public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id) throws JsonProcessingException {
+    public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id,String tag) throws JsonProcessingException {
         JsonNode dashboardPanelNode;
         // Searching for the dashboard
         HttpEntity<String> requestEntity = getHeaderHttp();
@@ -91,6 +91,7 @@ public class PanelClient {
         ArrayNode targetsNode = objectMapper.createArrayNode();
         ObjectNode targetNode = objectMapper.createObjectNode();
         targetNode.put("expr", targetExpr);
+        targetNode.put("tags", tag);
         targetsNode.add(targetNode);
 
         panelNode.set("targets", targetsNode);
