@@ -21,7 +21,7 @@ import java.util.*;
 public class PrometheusQueryController {
     //@Value("${prometheus.server.url}")
     //private String prometheus_url;
-    private String prometheus_url="http://172.18.3.220:9090/";
+    private String prometheus_url="http://localhost:9090/";
 
     @GetMapping("/metrics")
     public String getMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) {

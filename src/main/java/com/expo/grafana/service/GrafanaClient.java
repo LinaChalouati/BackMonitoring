@@ -2,6 +2,7 @@ package com.expo.grafana.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -286,6 +287,10 @@ public class GrafanaClient {
             if (panelsNode.isArray()) {
                 for (JsonNode panelNode : panelsNode) {
                     panelIds.add(panelNode.get("id").asText());
+                    System.out.println(panelNode);
+
+
+
                 }
             }
         }
@@ -294,6 +299,7 @@ public class GrafanaClient {
                 if (panelsNode.isArray()) {
                     for (JsonNode panelNode : panelsNode) {
                         panelIds.add(panelNode.get("id").asText());
+                        System.out.println(panelNode);
                     }
                 }
 
@@ -303,10 +309,62 @@ public class GrafanaClient {
     }
 
 
-    /*public List<String >getAllPanelIds(String dashboardTitle) throws  JsonProcessingException{
+    public List<String> getAllPanelIdsByTag(String dashboardTitle,String tag) throws JsonProcessingException {
+        System.out.println("l tag"+tag);
+        System.out.println("l tag"+"11".contains(tag));
 
+        String dashboardJson = this.GetDashboard(dashboardTitle);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode dashboardNode = objectMapper.readTree(dashboardJson);
+        List<String> panelIds = new ArrayList<>();
+        System.out.println("get all panels"+dashboardNode.path("dashboard").has("panels"));
+
+        if (dashboardNode.path("dashboard").has("panels")) {
+            JsonNode panelsNode = dashboardNode.path("dashboard").path("panels");
+            System.out.println(panelsNode);
+
+            if (panelsNode.isArray()) {
+                for (JsonNode panelNode : panelsNode) {
+                    System.out.println("lena1"+panelNode.get("targets").get(0).get("tags").asText());
+                    if(!panelNode.get("targets").get(0).get("tags").asText().isEmpty()){
+                        String panelTag = (panelNode.get("targets").get(0).get("tags").asText());
+                        System.out.println("compraison f node"+panelTag.equals(tag));
+                        if(panelTag.equals(tag)){
+                            panelIds.add(panelNode.get("id").asText());
+
+                        }
+                    }
+                }
+            }
+        }
+        else{
+            JsonNode panelsNode = dashboardNode.path("dashboard").get("rows").get(0).path("panels");
+            if (panelsNode.isArray()) {
+                for (JsonNode panelNode : panelsNode) {
+                  //  System.out.println(panelNode);
+                    System.out.println("lena2"+panelNode.get("targets").get(0).get("tags").asText());
+
+                    if(!panelNode.get("targets").get(0).get("tags").asText().isEmpty() ){
+                        String panelTag = (panelNode.get("targets").get(0).get("tags").asText());
+                        System.out.println("compraison f node"+panelTag.equals(tag));
+
+                        if(panelTag.equals(tag)){
+                            panelIds.add(panelNode.get("id").asText());
+
+                        }
+                    }
+            }
+            }
+
+
+        }
+
+        return panelIds;
     }
-*/
+
+
+
+
 
 
 }

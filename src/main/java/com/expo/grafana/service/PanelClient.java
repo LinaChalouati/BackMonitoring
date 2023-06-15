@@ -41,7 +41,7 @@ public class PanelClient {
         return new HttpEntity<>(headers);
     }
 
-    public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id,String tag) throws JsonProcessingException {
+    public void addPanel(String dashboardTitle, String panelTitle, String targetExpr, String chart,Integer id,Integer tag) throws JsonProcessingException {
         JsonNode dashboardPanelNode;
         // Searching for the dashboard
         HttpEntity<String> requestEntity = getHeaderHttp();
@@ -83,6 +83,8 @@ public class PanelClient {
         // Create a new panel
         ObjectNode panelNode = objectMapper.createObjectNode();
         panelNode.put("title", panelTitle);
+
+
         panelNode.put("id", id);
 
         panelNode.put("type", chart);
@@ -291,14 +293,7 @@ public class PanelClient {
     public void modifyPanel(String dashboardTitle, int panelId, String newTitle, String newType) throws Exception {
         //  dashboard JSON
         String dashboardJson = grafanaClient.GetDashboard(dashboardTitle);
-        //     System.out.println(dashboardJson);
 
-        //kifkif lehne à verifier l'arborescence taa l champs panels
-        //  JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard");
-
-        // JsonNode dashboardNode = mapper.readTree(dashboardJson).get("dashboard").get("rows").get(0);
-        //   System.out.println(dashboardNode);
-        //  System.out.println(dashboardNode.get("dashboard").get("panels"));
         // Find the panel to modify based on the panel ID
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -433,6 +428,81 @@ public class PanelClient {
         throw new RuntimeException("Panel not found: " + panelTitle);
     }
 
+    public void setFormat(String dashboardTitle, Integer panelId) throws Exception {
+        //  dashboard JSON
+        String dashboardJson = grafanaClient.GetDashboard(dashboardTitle);
+        System.out.println(dashboardJson);
 
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode dashboardNode = (ObjectNode) objectMapper.readTree(dashboardJson);
+        JsonNode panelsNode;
+        // JsonNode panelsNode2=dashboardNode.path("dashboard").path("panels");
+        // System.out.println("panelsNode2"+panelsNode2);
+        if (dashboardNode.path("dashboard").path("panels").isEmpty()) {
+            System.out.println("lena1");
+            panelsNode =  dashboardNode.path("dashboard").path("rows").get(0).path("panels");
+        } else {
+            System.out.println("lena2");
+
+            panelsNode = dashboardNode.path("dashboard").path("panels");
+        }
+
+
+        JsonNode panelNode = null;
+        for (JsonNode panel : panelsNode) {
+            System.out.println("panel"+panel);
+            if (panel.get("id").asInt() == panelId) {
+                panelNode = panel;
+                System.out.println(panelNode); //OK
+
+                break;
+            }
+        }
+
+        if (panelNode == null) {
+            throw new Exception("Panel with ID " + panelId + " not found in dashboard " + dashboardTitle);
+        }
+        System.out.println("lena");
+        JsonNode panelNodeConfig=panelNode.path("fieldConfig").path("defaults");
+        System.out.println("lunit"+panelNode.path("fieldConfig").path("defaults"));
+        //String unit=panelNodeConfig.get("unit").asText();
+        // System.out.println("unit2"+unit);
+
+        ((ObjectNode) panelNodeConfig).put("unit", "s");
+        System.out.println("unit2"+panelNodeConfig);
+
+        System.out.println("dashboardNode"+dashboardNode);
+        //String modifiedDashboardJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dashboardNode);
+        //grafanaClient.updateDashboard(modifiedDashboardJson);
+
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Send the updated dashboard JSON to the server
+        HttpHeaders updateHeaders = new HttpHeaders();
+        updateHeaders.setContentType(MediaType.APPLICATION_JSON);
+        updateHeaders.set("Authorization", "Bearer " + apiKey);
+        HttpEntity<String> updateRequestEntity = new HttpEntity<>(objectMapper.writeValueAsString(dashboardNode), updateHeaders);
+        System.out.println(dashboardNode);
+        ResponseEntity<String> updateResponse = restTemplate.exchange(grafanaUrl + "api/dashboards/db", HttpMethod.POST, updateRequestEntity, String.class);
+
+        // Check if the update was successful
+        if (updateResponse.getStatusCode().is2xxSuccessful()) {
+            System.out.println("Dashboard updated successfully");
+
+
+        } else {
+            throw new RuntimeException("Dashboard update failed: " + updateResponse.getStatusCodeValue() + " " + updateResponse.getBody());
+        }
+    }
+
+
+
+    public String viewSettings(String indice){
+        if(indice=="uptime"){
+
+        }
+     return "";
+    }
 }

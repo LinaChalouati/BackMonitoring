@@ -53,17 +53,17 @@ public class DashboardController {
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+    Integer id=1;
 
 
     @PostMapping("/panel")
     public void addPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,@RequestParam(value = "PanelTitle") String PanelTitle,
                          @RequestParam(value = "target") String targetExpr,@RequestParam (value= "panelChart")String chart,
                         @RequestParam(value="ip")String ip,
-                         @RequestParam(value="port")String port,@RequestParam(value = "tag")String tag)                                                    throws IOException {
+                         @RequestParam(value="port")String port,@RequestParam(value = "tag")String tag) throws Exception {
 
 
         System.out.println(PanelTitle);
-        Integer id=1;
 
       //System.out.println("fl controller"+grafanaClient.getAllPanelIds(dashboardTitle).isEmpty());
         if(! grafanaClient.getAllPanelIds(dashboardTitle).isEmpty()){
@@ -72,9 +72,18 @@ public class DashboardController {
             id=Integer.valueOf(panels.get(panels.size() - 1) )+1;
             }
         String target=this.prometheusQuery.getQueryExpression(targetExpr,ip,port);
+        int tagnumber = Integer.parseInt(tag);
 
+        panelClient.addPanel(dashboardTitle,PanelTitle, target, chart,id ,tagnumber);
+        if(targetExpr.contains("time")){
+            panelClient.setFormat(dashboardTitle,id);
+            System.out.println("ok mrigl");
+        }
+    }
+    @GetMapping("setunit")
+    public void setUnit(@RequestParam(value="dashboardTitle")String title,@RequestParam(value = "id")Integer id) throws Exception {
+        panelClient.setFormat(title,id);
 
-        panelClient.addPanel(dashboardTitle,PanelTitle, target, chart,id ,tag);
     }
     @PostMapping("/deletePanel")
     public void deletePanel(@RequestParam (value="dashboardTitle") String dashboardTitle, @RequestParam (value="PanelTitle")String panelTitle) throws JsonProcessingException{
@@ -178,6 +187,18 @@ public class DashboardController {
     @GetMapping("/allpanels")
     public ResponseEntity<List<String>> getAllPanelsId(@RequestParam("dashboardTitle") String title) throws JsonProcessingException {
         List<String> panels = grafanaClient.getAllPanelIds(title);
+        if (panels.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(panels);
+        }
+    }
+    @GetMapping("/allpanelsbytag")
+    public ResponseEntity<List<String>> getAllPanelsIdByTags(@RequestParam("dashboardTitle") String title,@RequestParam("tag")String tag) throws JsonProcessingException {
+        System.out.println("title"+title);
+        System.out.println("tag"+tag);
+
+        List<String> panels = grafanaClient.getAllPanelIdsByTag(title,tag);
         if (panels.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
