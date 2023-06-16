@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 5m
+route:
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+receivers:
+  - name: 'test'
+    email_configs:
+      - to: 'test'
+        from: 'test'
+        smarthost: 'elihowa'
+        smtp_auth_username: 'lili'
+        smtp_auth_password: 'password'
+
