@@ -1,0 +1,11 @@
+groups:
+- name: Prometheus alerts
+  rules:
+  - alert: Highsonarqube_vulnerabilitiesUsageOn172.18.2.236:9000
+    expr: sonarqube_vulnerabilities{instance="172.18.2.236:9000"}  > 0.1 
+    for: 5m 
+    labels:
+      severity: critical
+    annotations:
+      summary: High sonarqube_vulnerabilities Usage on 172.18.2.236:9000
+      description: sonarqube_vulnerabilities exceeds the threshold of 0.1 on instance 172.18.2.236:9000
