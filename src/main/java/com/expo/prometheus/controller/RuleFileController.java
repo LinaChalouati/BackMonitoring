@@ -43,8 +43,6 @@ public class RuleFileController {
     }
 
 
-
-
     @PostMapping("/push-rule")
     public String pushRuleFile(@RequestParam("ruleFilePath") String ruleFilePath) {
         try {
@@ -56,10 +54,6 @@ public class RuleFileController {
         }
     }
 
-  /*  @GetMapping("/get_prometheus_rules")
-    public JsonNode getPrometheusRules() {
-       return ruleFileGenerator.getAlerts();
-    }*/
 
     @PostMapping("/modifyRule")
     public ResponseEntity<Boolean> modifyRule(@RequestParam(value="rulename")String rulename,

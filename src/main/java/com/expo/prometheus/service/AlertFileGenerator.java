@@ -48,19 +48,6 @@ public class AlertFileGenerator {
     }
 
 
-
-    /*public static void generateConfigFile(String configContent, String filePath) {
-        try {
-            FileWriter writer = new FileWriter(filePath);
-            writer.write(configContent);
-            writer.close();
-            System.out.println("AlertManager configuration file generated successfully.");
-        } catch (IOException e) {
-            System.err.println("Failed to write the configuration file: " + e.getMessage());
-        }
-    }*/
-
-
     public void addReceiverToFile(String receiverName, String receiverEmail, String senderEmail, String smarthost, String username, String password) {
         String receiver=generateReceiverConfig(receiverName,receiverEmail,senderEmail,smarthost,username,password);
         try {
@@ -99,7 +86,6 @@ public class AlertFileGenerator {
 
         return receiverConfig;
 
-        // addReceiverToReceiversList(,receiverConfig);
     }
 
 
