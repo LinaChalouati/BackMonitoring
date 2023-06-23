@@ -117,9 +117,6 @@ public class PrometheusQueryController {
     public String getTheExpr(@RequestParam("indiceexpr")String indiceexpr,@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
         OtherQuery OtherQuery=new OtherQuery();
         Map<String ,String> OtherQueryMap=OtherQuery.getQuery();
-        //System.out.println("lena"+OtherQueryMap.keySet());
-        //System.out.println("lena"+OtherQueryMap.get("uptime"));
-        //System.out.println("lena2"+String.format(OtherQueryMap.get("uptime"),ip+":"+port));
         PrometheusQuery prometheusQuery = new PrometheusQuery();
 
         System.out.println("targetindice"+indiceexpr);

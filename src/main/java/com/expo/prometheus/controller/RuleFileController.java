@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class RuleFileController {
     private final RuleFileGenerator ruleFileGenerator;
     private final PrometheusAlertService prometheusService;
@@ -31,20 +32,9 @@ public class RuleFileController {
         ruleFileGenerator.generateRuleFile();
         return "Rule file generated successfully.";
     }
-
-    @PostMapping("/add-rule")
-    public void addRuleToFile(@RequestParam(value="instance")String instance,@RequestParam(value = "metric")String metric,
-    @RequestParam(value="severity")String severity,@RequestParam(value="comparaison")String comparaison,
-       @RequestParam(value="value")String value,@RequestParam(value="time")String time){
-
-        ruleFileGenerator.addRuleToFile(instance,metric,severity,comparaison,value,time);
-
-
-    }
-
-
-    @PostMapping("/push-rule")
-    public String pushRuleFile(@RequestParam("ruleFilePath") String ruleFilePath) {
+    @GetMapping("/push-rule")
+    public String pushRuleFile() {
+        String ruleFilePath="src/main/resources/alert.rules.yml";
         try {
             prometheusService.pushRuleFile(ruleFilePath);
             return "Rule file pushed to Prometheus server successfully.";
@@ -53,6 +43,24 @@ public class RuleFileController {
             return "Failed to push the rule file to Prometheus server.";
         }
     }
+
+    @PostMapping("/add-rule")
+    public void addRuleToFile(@RequestParam(value="alertname")String alertname,@RequestParam(value = "instance")String instance,@RequestParam(value = "metric")String metric,
+    @RequestParam(value="severity")String severity,@RequestParam(value="comparaison")String comparaison,
+       @RequestParam(value="value")String value,@RequestParam(value="time")String time,
+    @RequestParam(value = "summary")String summary,
+     @RequestParam(value = "description")String description
+    )
+            throws IOException {
+    System.out.println("instalce"+instance);
+        ruleFileGenerator.addRuleToFile(alertname,instance,metric,severity,comparaison,value,time,summary,description);
+        String ruleFilePath="src/main/resources/alert.rules.yml";
+        prometheusService.pushRuleFile(ruleFilePath);
+
+
+    }
+
+
 
 
     @PostMapping("/modifyRule")
@@ -65,9 +73,9 @@ public class RuleFileController {
         }
         return ResponseEntity.status(400).body(false);
     }
-    @PostMapping("/get_rules")
-    public ResponseEntity<List<RuleInfo>> getRules() throws JsonProcessingException {
-        List<RuleInfo> rules = ruleFileGenerator.getRules();
+    @GetMapping("/get_rules")
+    public ResponseEntity<List<RuleInfo>> getRules(@RequestParam(value="instance")String instance) throws JsonProcessingException {
+        List<RuleInfo> rules = ruleFileGenerator.getRulesByInstance(instance);
         System.out.println("rules"+rules);
 
         if (!rules.isEmpty()) {
@@ -76,7 +84,7 @@ public class RuleFileController {
             return ResponseEntity.status(404).body(null);
         }
     }
-    @PostMapping("/get_rule_byname")
+    /*@PostMapping("/get_rule_byname")
     public ResponseEntity<RuleInfo> getRuleByName(@RequestParam(value = "rulename") String rulename) throws JsonProcessingException {
         RuleInfo ruleInfo = ruleFileGenerator.getRuleByName(rulename);
 
@@ -85,7 +93,7 @@ public class RuleFileController {
         } else {
             return ResponseEntity.status(404).body(null);
         }
-    }
+    }*/
     // NEIN
     @PostMapping("/delete_alert")
     public ResponseEntity<Boolean> deleteAlertRule(@RequestParam(value = "rulename") String rulename) throws JsonProcessingException {

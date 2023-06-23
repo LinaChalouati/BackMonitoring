@@ -63,8 +63,8 @@ public class RuleFileGenerator {
     }
 
 
-    public void addRuleToFile( String instance,String metric,String severity,String comparaison,String value,String time) {
-        String rule = generateRule(metric, instance,severity,comparaison,value,time);
+    public void addRuleToFile( String alertname,String instance,String metric,String severity,String comparaison,String value,String time,String summary,String descrption) {
+        String rule = generateRule(alertname,metric, instance,severity,comparaison,value,time,summary,descrption);
 
         try {
             Path ruleFilePath = Path.of(RESOURCES_DIRECTORY, RULES_FILE_NAME);
@@ -73,7 +73,7 @@ public class RuleFileGenerator {
                 Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
                 System.out.println("Rule added to the file successfully.");
             } else {
-             //   System.err.println("Rule file does not exist. Please generate the rule file first.");
+                //   System.err.println("Rule file does not exist. Please generate the rule file first.");
                 System.err.println("Rule File generated");
 
                 generateRuleFile();
@@ -92,20 +92,22 @@ public class RuleFileGenerator {
     }
 
 
-    private String generateRule(String metric, String instance, String severity, String comparison,String value,String time) {
+    private String generateRule(String alertname,String metric, String instance, String severity, String comparison,String value,String time,String summary,String description) {
 // Generate the rule content for the given metric and instance
         String comparisonCharacter = getComparisonCharacter(comparison);
-        String summaryNotice=getDescription(comparisonCharacter);
+        //String summaryNotice=getDescription(comparisonCharacter);
         String rule = String.format(
-                "  - alert: High%sUsageOn%s\n" +
+                "  - alert: %s\n" +
                         "    expr: %s{instance=\"%s\"}  %s %s \n" +
-                "    for: %s \n" +
+                        "    for: %s \n" +
                         "    labels:\n" +
                         "      severity: %s\n" +
+                        "      instance: %s\n" +
+
                         "    annotations:\n" +
-                        "      summary: %s %s Usage on %s\n" +
-                        "      description: %s exceeds the threshold of %s on instance %s",
-                metric, instance, metric, instance, comparisonCharacter, value,time,severity,summaryNotice, metric, instance, metric, value,instance);
+                        "      summary: %s \n" +
+                        "      description: %s \n"+"\n",
+                alertname,metric, instance, comparisonCharacter, value,time,severity,instance,summary, description);
 
         return rule;
     }
@@ -164,15 +166,15 @@ public class RuleFileGenerator {
                 for (Map<String, Object> ruleItem : ruleList) {
                     if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName)) {
                         System.out.println("lena4"+ruleItem);
-                            if (property.equals("severity")){
-                              Map<String,Object> labels= (Map<String, Object>) ruleItem.get("labels");
-                                labels.put(property, newValue);
-                                System.out.println("labels"+labels);
-                                ruleFound = true;
+                        if (property.equals("severity")){
+                            Map<String,Object> labels= (Map<String, Object>) ruleItem.get("labels");
+                            labels.put(property, newValue);
+                            System.out.println("labels"+labels);
+                            ruleFound = true;
 
-                                break;
+                            break;
 
-                            }
+                        }
                         if (property.equals("summary")){
                             Map<String,Object> annotations= (Map<String, Object>) ruleItem.get("annotations");
                             annotations.put(property, newValue);
@@ -191,12 +193,12 @@ public class RuleFileGenerator {
                             break;
 
                         }
-                            else{
-                                ruleItem.put(property, newValue);
-                                ruleFound = true;
-                                break;
+                        else{
+                            ruleItem.put(property, newValue);
+                            ruleFound = true;
+                            break;
 
-                            }
+                        }
                         // Modify the property
 
                     }
@@ -205,7 +207,7 @@ public class RuleFileGenerator {
                     break;
                 }
             }
-        System.out.println("lena3"+rules);
+            System.out.println("lena3"+rules);
             // Check if the rule exists
             if (!ruleFound) {
                 // The rule does not exist
@@ -225,8 +227,8 @@ public class RuleFileGenerator {
         }
     }
     private static final String PROMETHEUS_API_URL = "http://localhost:9090/api/v1/rules";
-
-    public List<RuleInfo> getRules() throws JsonProcessingException {
+   // private static final String PROMETHEUS_API_URL = "http://172.18.3.220:9090/api/v1/rules";
+    public List<RuleInfo> getRulesByInstance(String instance) throws JsonProcessingException {
         // Set the headers for the request
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -238,6 +240,7 @@ public class RuleFileGenerator {
                 null,
                 String.class
         );
+        System.out.println(response);
 
         // Check if the request was successful
         if (response.getStatusCode().is2xxSuccessful()) {
@@ -246,21 +249,32 @@ public class RuleFileGenerator {
             // Parse the JSON response and extract the rule information
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode rulesNode = root.get("data").get("groups").get(0).get("rules");
+            JsonNode groupsNode = root.get("data").get("groups");
 
             // Create a list to store the rule information
             List<RuleInfo> ruleInfoList = new ArrayList<>();
 
-            // Iterate over the rules and extract relevant information
-            for (JsonNode ruleNode : rulesNode) {
-                String name = ruleNode.get("name").asText();
-                String query = ruleNode.get("query").asText();
-                String duration = ruleNode.get("duration").asText();
-                String state = ruleNode.get("state").asText();
+            // Iterate over the rule groups
+            for (JsonNode groupNode : groupsNode) {
+                JsonNode rulesNode = groupNode.get("rules");
+                System.out.println("rulesnode"+rulesNode);
 
-                // Create a RuleInfo object with the extracted information
-                RuleInfo ruleInfo = new RuleInfo(name, query, duration, state);
-                ruleInfoList.add(ruleInfo);
+                // Iterate over the rules and extract relevant information
+                for (JsonNode ruleNode : rulesNode) {
+                    String name = ruleNode.get("name").asText();
+                    String query = ruleNode.get("query").asText();
+                    String duration = ruleNode.get("duration").asText();
+                    String state = ruleNode.get("state").asText();
+                    String ruleInstance = ruleNode.get("labels").get("instance").asText();
+
+                    // Check if the rule instance matches the desired instance
+                   if (ruleInstance.equals(instance)) {
+                        // Create a RuleInfo object with the extracted information
+                        RuleInfo ruleInfo = new RuleInfo(name, query, duration, state);
+                        ruleInfoList.add(ruleInfo);
+                        System.out.println("ruleinfo"+ruleInfo);
+                    }
+                }
             }
 
             // Return the list of rule information
@@ -269,8 +283,9 @@ public class RuleFileGenerator {
             System.out.println("Failed to retrieve the rules. Response: " + response.getBody());
             return null;
         }
-
     }
+    /*
+
     public RuleInfo getRuleByName(String ruleName) throws JsonProcessingException {
         // Set the headers for the request
         List<RuleInfo> rulesinfo=getRules();
@@ -294,7 +309,7 @@ public class RuleFileGenerator {
             System.out.println("Rule with name '" + ruleName + "' not found.");
             return null;
 
-    }
+    }*/
     // A voir later on
     public boolean deleteAlertRule(String alertName) {
         try {
@@ -349,11 +364,11 @@ public class RuleFileGenerator {
                 for (Map<String, Object> ruleItem : ruleList) {
                     if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName)) {
                         ruleList.remove(ruleItem);
-                            ruleFound = true;
-                            break;
+                        ruleFound = true;
+                        break;
 
-                        }
-                        // Modify the property
+                    }
+                    // Modify the property
 
 
                 }
@@ -434,8 +449,9 @@ public class RuleFileGenerator {
         return "";
     }
 
-}
 
+
+}
 
 
 

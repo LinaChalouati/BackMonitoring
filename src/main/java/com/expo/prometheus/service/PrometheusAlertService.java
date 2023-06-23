@@ -3,10 +3,13 @@ package com.expo.prometheus.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.io.IOException;
 
 @Service
+@CrossOrigin(origins = "*")
+
 public class PrometheusAlertService {
 
 
