@@ -3,6 +3,8 @@ import com.expo.prometheus.model.RuleInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +34,7 @@ public class RuleFileGenerator {
     private String prometheusServerurl;
     @Value("${prometheus.config.path}")
     private String prometheusConfigPath;
-    String theLocalRulesFile=RESOURCES_DIRECTORY+RULES_FILE_NAME;
+    private String theLocalRulesFile=RESOURCES_DIRECTORY+RULES_FILE_NAME;
     private PrometheusAlertService prometheusAlertService;
     @Value("${prometheus.restart.command}")
     private String prometheusRestartCommand;
@@ -55,40 +57,38 @@ public class RuleFileGenerator {
 
 
         // Write the rule file to the resources directory
-        String fileName = "alert.rules.yml";
-        String resourcesDirectory = "src/main/resources/";
-
-        Path ruleFilePath = Path.of(resourcesDirectory, fileName);
-        Files.writeString(ruleFilePath, ruleFileContent.toString());
+        Files.writeString(Path.of(theLocalRulesFile), ruleFileContent.toString());
     }
 
 
-    public void addRuleToFile( String alertname,String instance,String metric,String severity,String comparaison,String value,String time,String summary,String descrption) {
+    public void addRuleToFile( String alertname,String instance,String metric,String severity,String comparaison,String value,String time,String summary,String descrption) throws IOException {
         String rule = generateRule(alertname,metric, instance,severity,comparaison,value,time,summary,descrption);
 
         try {
-            Path ruleFilePath = Path.of(RESOURCES_DIRECTORY, RULES_FILE_NAME);
+            Path ruleFilePath = Path.of(theLocalRulesFile);
 
             if (Files.exists(ruleFilePath)) {
                 Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
                 System.out.println("Rule added to the file successfully.");
+                this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
+
             } else {
                 //   System.err.println("Rule file does not exist. Please generate the rule file first.");
                 System.err.println("Rule File generated");
 
                 generateRuleFile();
                 Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
+                this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
 
 
-                this.prometheusAlertService.pushRuleFile(theLocalRulesFile);
 
-                // Execute the command to restart or reload Prometheus
-                this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
 
             }
         } catch (IOException e) {
             System.err.println("Failed to add the rule to the file: " + e.getMessage());
         }
+
+
     }
 
 
@@ -144,7 +144,6 @@ public class RuleFileGenerator {
         try {
             //hedhi à discuter
             String prometheusfile = prometheusConfigPath + "alert.rules.yml";
-            String theLocalAlertFile=RESOURCES_DIRECTORY+RULES_FILE_NAME;
 
             System.out.println("here");
 
@@ -214,9 +213,9 @@ public class RuleFileGenerator {
                 return false;
             }
             // Write the modified content back to the configuration file
-            yaml.dump(yamlObject, new FileWriter(theLocalAlertFile));
-            System.out.println("hereeeeee"+theLocalAlertFile);
-            this.prometheusAlertService.pushRuleFile(theLocalAlertFile);
+            yaml.dump(yamlObject, new FileWriter(theLocalRulesFile));
+            System.out.println("hereeeeee"+theLocalRulesFile);
+            this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
 
             // Execute the command to restart or reload Prometheus
             this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
@@ -227,7 +226,6 @@ public class RuleFileGenerator {
         }
     }
     private static final String PROMETHEUS_API_URL = "http://localhost:9090/api/v1/rules";
-   // private static final String PROMETHEUS_API_URL = "http://172.18.3.220:9090/api/v1/rules";
     public List<RuleInfo> getRulesByInstance(String instance) throws JsonProcessingException {
         // Set the headers for the request
         HttpHeaders headers = new HttpHeaders();
@@ -385,9 +383,9 @@ public class RuleFileGenerator {
             // Write the modified content back to the configuration file
             yaml.dump(yamlObject, new FileWriter(theLocalRulesFile));
             System.out.println("hereeeeee"+theLocalRulesFile);
-            String theLocalAlertFile=RESOURCES_DIRECTORY+RULES_FILE_NAME;
 
-            this.prometheusAlertService.pushRuleFile(theLocalAlertFile);
+
+            this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
 
             // Execute the command to restart or reload Prometheus
             this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
@@ -398,7 +396,7 @@ public class RuleFileGenerator {
         }
     }
 
-    public JSONArray getAlertStatus() {
+    public JsonNode getAlertStatus(String instance) {
         try {
             String alertStatusEndpoint = prometheusServerurl + "/api/v1/alerts";
 
@@ -413,36 +411,46 @@ public class RuleFileGenerator {
                 // Parse the response body as JSON
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode alertsNode = objectMapper.readTree(responseBody).get("data").get("alerts");
-                System.out.println("alertsNode"+alertsNode);
-                // Create a JSON object to store the alerts
-                JSONArray alerts = new JSONArray();
 
-                // Process each alert and add it to the JSON object
+                // Create a JSON array to store the filtered alerts
+                JsonNode filteredAlerts = objectMapper.createArrayNode();
+
+                // Process each alert and add the desired fields to the filtered alerts
                 for (JsonNode alertNode : alertsNode) {
-                    JSONObject alert = new JSONObject();
+                    // Get the instance label value
+                    String alertInstance = alertNode.get("labels").get("instance").asText();
 
-                    alert.put("alertName", alertNode.get("labels").get("alertname").asText());
-                    alert.put("severity", alertNode.get("labels").get("severity").asText());
-                    alert.put("instance", alertNode.get("labels").get("instance").asText());
-                    alert.put("description", alertNode.get("annotations").get("description").asText());
-                    alert.put("active", alertNode.get("state").asText().equals("active"));
+                    // Compare the instance label with the provided instance input
+                    if (alertInstance.equals(instance)) {
+                        // Create a JSON object for the filtered alert
+                        JsonNode filteredAlert = objectMapper.createObjectNode();
 
-                    alerts.put(alert);
+                        // Add the desired fields to the filtered alert
+                        ((ObjectNode) filteredAlert).put("alertname", alertNode.get("labels").get("alertname").asText());
+                        ((ObjectNode) filteredAlert).put("instance", alertNode.get("labels").get("instance").asText());
+                        ((ObjectNode) filteredAlert).put("job", alertNode.get("labels").get("job").asText());
+                        ((ObjectNode) filteredAlert).put("severity", alertNode.get("labels").get("severity").asText());
+                        ((ObjectNode) filteredAlert).put("state", alertNode.get("state").asText());
+                        ((ObjectNode) filteredAlert).put("activeAt", alertNode.get("activeAt").asText());
+
+                        // Add the filtered alert to the filtered alerts array
+                        ((ArrayNode) filteredAlerts).add(filteredAlert);
+                    }
                 }
 
-                // Return the JSON object
-                return alerts;
+                // Return the filtered alerts
+                return filteredAlerts;
             } else {
                 System.out.println("Failed to retrieve alert status. Response: " + response.getBody());
                 return null;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Failed to lena alert status. Response: " );
-
+            System.out.println("Failed to fetch alert status.");
             return null;
         }
     }
+
     public String ExpressionGenerator(String expression){
 
 

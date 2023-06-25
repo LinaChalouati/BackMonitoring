@@ -6,8 +6,10 @@ import com.expo.prometheus.model.RuleInfo;
 import com.expo.prometheus.service.PrometheusAlertService;
 import com.expo.prometheus.service.RuleFileGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +34,7 @@ public class RuleFileController {
         ruleFileGenerator.generateRuleFile();
         return "Rule file generated successfully.";
     }
-    @GetMapping("/push-rule")
+  /*  @GetMapping("/push-rule")
     public String pushRuleFile() {
         String ruleFilePath="src/main/resources/alert.rules.yml";
         try {
@@ -42,7 +44,7 @@ public class RuleFileController {
             e.printStackTrace();
             return "Failed to push the rule file to Prometheus server.";
         }
-    }
+    }*/
 
     @PostMapping("/add-rule")
     public void addRuleToFile(@RequestParam(value="alertname")String alertname,@RequestParam(value = "instance")String instance,@RequestParam(value = "metric")String metric,
@@ -54,8 +56,8 @@ public class RuleFileController {
             throws IOException {
     System.out.println("instalce"+instance);
         ruleFileGenerator.addRuleToFile(alertname,instance,metric,severity,comparaison,value,time,summary,description);
-        String ruleFilePath="src/main/resources/alert.rules.yml";
-        prometheusService.pushRuleFile(ruleFilePath);
+  //      String ruleFilePath="src/main/resources/alert.rules.yml";
+//        prometheusService.pushRuleFile(ruleFilePath);
 
 
     }
@@ -115,14 +117,15 @@ public class RuleFileController {
             return ResponseEntity.status(404).body(false);
         }
     }
-    @PostMapping("/get_alert_status")
-    public ResponseEntity<JSONArray> getAlerts() throws JsonProcessingException {
-        JSONArray alerts = ruleFileGenerator.getAlertStatus();
 
-        if (!alerts.isEmpty()) {
+    @GetMapping("/get_alert_status")
+    public ResponseEntity<JsonNode> getAlerts(@RequestParam("instance") String instance) {
+        JsonNode alerts = ruleFileGenerator.getAlertStatus(instance);
+
+        if (alerts != null) {
             return ResponseEntity.ok(alerts);
         } else {
-            return ResponseEntity.status(404).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 

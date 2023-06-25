@@ -1,0 +1,45 @@
+groups:
+- name: Prometheus alerts
+  rules:
+  - alert: important alert2
+    expr: up{instance="localhost:9090"}  > 0 
+    for: 5m 
+    labels:
+      severity: warning
+      instance: localhost:9090
+    annotations:
+      summary: exemplesummaru 
+      description: a basic description 
+
+
+  - alert: important alert3
+    expr: up{instance="localhost:9090"}  > 0 
+    for: 5m 
+    labels:
+      severity: warning
+      instance: localhost:9090
+    annotations:
+      summary: exemplesummaru 
+      description: a basic description
+  - alert: cpu
+    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5 
+    for: 1m 
+    labels:
+      severity: critical
+      instance: localhost:9090
+    annotations:
+      summary: a summary 
+      description: a second description 
+
+
+  - alert: cpu2
+    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5 
+    for: 1m 
+    labels:
+      severity: critical
+      instance: localhost:9090
+    annotations:
+      summary: a summary 
+      description: a second description 
+
+

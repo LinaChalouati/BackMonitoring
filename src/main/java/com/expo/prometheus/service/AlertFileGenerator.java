@@ -25,7 +25,11 @@ public class AlertFileGenerator {
     private String alertManagerConfigPath;
     @Value("${alertmanager.restart.command}")
     private String alertManagerRestartCommand;
+    private PrometheusAlertService prometheusAlertService;
 
+    public AlertFileGenerator(PrometheusAlertService prometheusAlertService) {
+        this.prometheusAlertService = prometheusAlertService;
+    }
 
     public void generateConfigFile() {
         // Define the alertmanager configuration content
@@ -46,13 +50,18 @@ public class AlertFileGenerator {
             writer.write(configContent);
             writer.close();
             System.out.println("Alertmanager configuration file generated successfully.");
+
+            this.prometheusAlertService.pushRuleFile(theLocalRulesFile,alertManagerConfigPath);
+
+            // Execute the command to restart or reload Prometheus
+            //this.prometheusAlertService.executeShellCommand(alertManagerRestartCommand);
         } catch (IOException e) {
             System.err.println("Failed to write the configuration file: " + e.getMessage());
         }
     }
 
 
-    public void addReceiverToFile(String receiverName, List<String> receiverEmails, String senderEmail, String smarthost, String username, String password) {
+    public void addReceiverToFile(String receiverName, List<String> receiverEmails, String senderEmail, String smarthost, String username, String password) throws IOException {
         String receiver = generateReceiverConfig(receiverName, receiverEmails, senderEmail, smarthost, username, password);
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
@@ -60,6 +69,7 @@ public class AlertFileGenerator {
             if (Files.exists(alertFilePath)) {
                 Files.writeString(alertFilePath, receiver + "\n", StandardOpenOption.APPEND);
                 System.out.println("Receiver added to the file successfully.");
+
             } else {
                 System.err.println("Alert file does not exist. Please generate the file first.");
                 generateConfigFile();
@@ -68,6 +78,10 @@ public class AlertFileGenerator {
         } catch (IOException e) {
             System.err.println("Failed to add the receiver to the file: " + e.getMessage());
         }
+        this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"alert");
+
+        // Execute the command to restart or reload Prometheus
+       // this.prometheusAlertService.executeShellCommand(alertManagerConfigPath);
     }
     public static String generateReceiverConfig(String receiverName, List<String> receiverEmails, String senderEmail, String smarthost, String username, String password) {
         String Emails="";

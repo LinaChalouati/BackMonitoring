@@ -72,7 +72,7 @@ public class PrometheusConfigFileGenerator {
                 Files.writeString(prometheusFilePath, receiver + "\n", StandardOpenOption.APPEND);
                 System.out.println("Target added to the file successfully.");
                 System.out.println(theLocalFile);
-                this.prometheusAlertService.pushRuleFile(theLocalFile);
+                this.prometheusAlertService.pushRuleFile(theLocalFile, String.valueOf(prometheusFilePath));
 
                 // Execute the command to restart or reload Prometheus
                 this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
@@ -86,7 +86,8 @@ public class PrometheusConfigFileGenerator {
                 Files.writeString(prometheusFilePath, receiver + "\n", StandardOpenOption.APPEND);
 
 
-                   this.prometheusAlertService.pushRuleFile(theLocalFile);
+                this.prometheusAlertService.pushRuleFile(theLocalFile, String.valueOf(prometheusFilePath));
+
 
                 // Execute the command to restart or reload Prometheus
                   this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);

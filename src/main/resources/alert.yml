@@ -5,11 +5,67 @@ route:
   group_interval: 5m
   repeat_interval: 12h
 receivers:
-  - name: 'test'
+  - name: 'team1'
     email_configs:
-      - to: 'test'
-        from: 'test'
-        smarthost: 'elihowa'
-        smtp_auth_username: 'lili'
-        smtp_auth_password: 'password'
+      - to: 'email1','email2'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team1'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
+
+  - name: 'team50'
+    email_configs:
+      - to: 'email1','email'
+        from: 'test@gmail.com'
+        smarthost: 'smtp'
+        smtp_auth_username: ''
+        smtp_auth_password: ''
 
