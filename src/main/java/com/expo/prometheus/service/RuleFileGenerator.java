@@ -140,35 +140,36 @@ public class RuleFileGenerator {
     // do i need to modify the expression ?
     //A voir later on
     //mazeli l severity
-    public boolean modifyRule(String ruleName, String property, String newValue) {
+    public boolean modifyRule(String ruleName, String property, String newValue,String instance) {
         try {
             //hedhi à discuter
-            String prometheusfile = prometheusConfigPath + "alert.rules.yml";
 
-            System.out.println("here");
+          //  System.out.println("here");
 
             // Read the file as a YAML file
             Yaml yaml = new Yaml();
-            Object yamlObject = yaml.load(new FileInputStream(prometheusfile));
-            System.out.println("yamlObject" + yamlObject);
+            Object yamlObject = yaml.load(new FileInputStream(theLocalRulesFile));
+        //    System.out.println("yamlObject" + yamlObject);
 
             // Find the rule to modify
             List<Map<String, Object>> rules = (List<Map<String, Object>>) ((Map<String, Object>) yamlObject).get("groups");
-            System.out.println("lena3"+rules);
+         //   System.out.println("lena3"+rules);
 
             boolean ruleFound = false;
 
             for (Map<String, Object> rule : rules) {
                 List<Map<String, Object>> ruleList = (List<Map<String, Object>>) rule.get("rules");
-                System.out.println("ruleList"+ruleList);
+            //    System.out.println("ruleList"+ruleList);
 
                 for (Map<String, Object> ruleItem : ruleList) {
-                    if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName)) {
-                        System.out.println("lena4"+ruleItem);
+                    Map<String, Object>  item= (Map<String, Object> ) ruleItem.get("labels");
+
+                    if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName)&& item.get("instance").equals(instance)) {
+                     //   System.out.println("lena4"+ruleItem);
                         if (property.equals("severity")){
                             Map<String,Object> labels= (Map<String, Object>) ruleItem.get("labels");
                             labels.put(property, newValue);
-                            System.out.println("labels"+labels);
+                     //       System.out.println("labels"+labels);
                             ruleFound = true;
 
                             break;
@@ -177,7 +178,7 @@ public class RuleFileGenerator {
                         if (property.equals("summary")){
                             Map<String,Object> annotations= (Map<String, Object>) ruleItem.get("annotations");
                             annotations.put(property, newValue);
-                            System.out.println("labels"+annotations);
+                       //     System.out.println("labels"+annotations);
                             ruleFound = true;
 
                             break;
@@ -214,11 +215,7 @@ public class RuleFileGenerator {
             }
             // Write the modified content back to the configuration file
             yaml.dump(yamlObject, new FileWriter(theLocalRulesFile));
-            System.out.println("hereeeeee"+theLocalRulesFile);
-            this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
-
-            // Execute the command to restart or reload Prometheus
-            this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
+              System.out.println("hereeeeee"+theLocalRulesFile);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -264,11 +261,17 @@ public class RuleFileGenerator {
                     String duration = ruleNode.get("duration").asText();
                     String state = ruleNode.get("state").asText();
                     String ruleInstance = ruleNode.get("labels").get("instance").asText();
+                    String severity = ruleNode.get("labels").get("severity").asText();
+                    String description =ruleNode.get("annotations").get("description").asText();
+                    String summary =ruleNode.get("annotations").get("summary").asText();
+
+
+
 
                     // Check if the rule instance matches the desired instance
                    if (ruleInstance.equals(instance)) {
                         // Create a RuleInfo object with the extracted information
-                        RuleInfo ruleInfo = new RuleInfo(name, query, duration, state);
+                        RuleInfo ruleInfo = new RuleInfo(instance,name, query, duration, state,description,summary,severity);
                         ruleInfoList.add(ruleInfo);
                         System.out.println("ruleinfo"+ruleInfo);
                     }
@@ -337,16 +340,15 @@ public class RuleFileGenerator {
 
     }
 
-    public boolean deleteRule(String ruleName) {
+    public boolean deleteRule(String ruleName,String instance) {
         try {
             //hedhi à discuter
-            String prometheusfile = prometheusConfigPath + "alert.rules.yml";
 
             System.out.println("here");
 
             // Read the file as a YAML file
             Yaml yaml = new Yaml();
-            Object yamlObject = yaml.load(new FileInputStream(prometheusfile));
+            Object yamlObject = yaml.load(new FileInputStream(theLocalRulesFile));
             System.out.println("yamlObject" + yamlObject);
 
             // Find the rule to modify
@@ -360,8 +362,13 @@ public class RuleFileGenerator {
                 System.out.println("ruleList"+ruleList);
 
                 for (Map<String, Object> ruleItem : ruleList) {
-                    if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName)) {
+                    System.out.println("ruleitem"+(Map<String, Object> )ruleItem.get("labels"));
+                    Map<String, Object>  item= (Map<String, Object> ) ruleItem.get("labels");
+                    System.out.println("item"+item.get("instance"));
+                    if (ruleItem.get("alert") != null && ruleItem.get("alert").equals(ruleName) && item.get("instance").equals(instance) ) {
                         ruleList.remove(ruleItem);
+                        System.out.println("ok lenaaa");
+
                         ruleFound = true;
                         break;
 

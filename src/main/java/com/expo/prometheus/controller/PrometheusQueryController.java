@@ -6,6 +6,7 @@ import com.expo.prometheus.service.PrometheusQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,7 +22,12 @@ import java.util.*;
 public class PrometheusQueryController {
     //@Value("${prometheus.server.url}")
     //private String prometheus_url;
-    private String prometheus_url="http://localhost:9090/";
+    private String prometheus_url="http://172.18.3.220:9090/";
+    public PrometheusQuery prometheusQuery;
+
+    public PrometheusQueryController(PrometheusQuery prometheusQuery) {
+        this.prometheusQuery = prometheusQuery;
+    }
 
     @GetMapping("/metrics")
     public String getMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) {
@@ -112,7 +118,6 @@ public class PrometheusQueryController {
 
         return "Job not found";
     }
-    public PrometheusQuery prometheusQuery;
     @GetMapping("/query_expr")
     public String getTheExpr(@RequestParam("indiceexpr")String indiceexpr,@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
         OtherQuery OtherQuery=new OtherQuery();
@@ -186,6 +191,10 @@ public class PrometheusQueryController {
 
     }
 
+    @GetMapping("/instance_metrics")
+    public JsonNode getInstanceMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
+        return this.prometheusQuery.getInstanceMetrics(ip, port);
+    }
 }
 
 

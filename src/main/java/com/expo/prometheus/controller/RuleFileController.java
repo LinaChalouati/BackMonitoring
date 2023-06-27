@@ -9,18 +9,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
 public class RuleFileController {
     private final RuleFileGenerator ruleFileGenerator;
     private final PrometheusAlertService prometheusService;
+    private static final String RULES_FILE_NAME = "alert.rules.yml";
+    private static final String RESOURCES_DIRECTORY = "src/main/resources/";
+    private String theLocalRulesFile=RESOURCES_DIRECTORY+RULES_FILE_NAME;
+    @Value("${prometheus.restart.command}")
+    private String prometheusRestartCommand;
 
 
     @Autowired
@@ -65,17 +73,38 @@ public class RuleFileController {
 
 
 
-    @PostMapping("/modifyRule")
-    public ResponseEntity<Boolean> modifyRule(@RequestParam(value="rulename")String rulename,
-                                              @RequestParam(value="property")String property,
-                                              @RequestParam(value="newvalue")String newvalue){
-        boolean rulemodified=ruleFileGenerator.modifyRule(rulename,property,newvalue);
-        if(rulemodified){
-            return ResponseEntity.ok(true);
+    @PostMapping(value = "/modify_rule")
+    public ResponseEntity<Boolean> modifyRule(@RequestBody List<Object>  modifiedValues) throws IOException {
+          System.out.println("mod: " + modifiedValues);
+       List rulename=  ((List)(modifiedValues.get(0)));
+       String rule=rulename.get(1).toString();
+        List instancelist=  ((List)(modifiedValues.get(1)));
+        String instance=instancelist.get(1).toString();
+        System.out.println("rulename: " +  rule);
+        System.out.println("instance: " +  instance);
+
+       for (int i = 2; i < modifiedValues.size(); i++) {
+            List values = (List) modifiedValues.get(i);
+            String property=values.get(0).toString();
+            String newvalue=values.get(1).toString();
+            System.out.println("property"+property);
+            System.out.println("property2"+newvalue );
+
+            boolean ruleModified = ruleFileGenerator.modifyRule(rule, property,newvalue, instance);
+            if (!ruleModified) {
+                return ResponseEntity.status(400).body(false);
+
+
+            }
         }
-        return ResponseEntity.status(400).body(false);
+
+        this.prometheusService.pushRuleFile(theLocalRulesFile,"rule");
+        return ResponseEntity.ok(true);
+
+
     }
-    @GetMapping("/get_rules")
+
+        @GetMapping("/get_rules")
     public ResponseEntity<List<RuleInfo>> getRules(@RequestParam(value="instance")String instance) throws JsonProcessingException {
         List<RuleInfo> rules = ruleFileGenerator.getRulesByInstance(instance);
         System.out.println("rules"+rules);
@@ -108,8 +137,8 @@ public class RuleFileController {
         }
     }
     @PostMapping("/delete_rule")
-    public ResponseEntity<Boolean> deleteRule(@RequestParam(value = "rulename") String rulename) throws JsonProcessingException {
-        boolean ruleDeleted = ruleFileGenerator.deleteRule(rulename);
+    public ResponseEntity<Boolean> deleteRule(@RequestParam(value = "rulename") String rulename,@RequestParam(value="instance")String instance) throws JsonProcessingException {
+        boolean ruleDeleted = ruleFileGenerator.deleteRule(rulename,instance);
 
         if (ruleDeleted) {
             return ResponseEntity.ok(true);
