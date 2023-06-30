@@ -1,4 +1,5 @@
 package com.expo.prometheus.service;
+import com.expo.prometheus.model.AlertInfo;
 import com.expo.prometheus.model.RuleInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,55 +62,47 @@ public class RuleFileGenerator {
     }
 
 
-    public void addRuleToFile( String alertname,String instance,String metric,String severity,String comparaison,String value,String time,String summary,String descrption) throws IOException {
-        String rule = generateRule(alertname,metric, instance,severity,comparaison,value,time,summary,descrption);
-
+    public void addRuleToFile(String alertname, List<String> instances, String metric, String severity, String comparison, String value, String time, String summary, String description) throws IOException {
         try {
+            String rule = generateRule(alertname, metric, instances, severity, comparison, value, time, summary, description);
             Path ruleFilePath = Path.of(theLocalRulesFile);
 
             if (Files.exists(ruleFilePath)) {
                 Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
                 System.out.println("Rule added to the file successfully.");
-                this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
-
+                this.prometheusAlertService.pushRuleFile(theLocalRulesFile, "rule");
             } else {
-                //   System.err.println("Rule file does not exist. Please generate the rule file first.");
                 System.err.println("Rule File generated");
-
                 generateRuleFile();
                 Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
-                this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
-
-
-
-
+                this.prometheusAlertService.pushRuleFile(theLocalRulesFile, "rule");
             }
         } catch (IOException e) {
             System.err.println("Failed to add the rule to the file: " + e.getMessage());
         }
-
-
     }
 
-
-    private String generateRule(String alertname,String metric, String instance, String severity, String comparison,String value,String time,String summary,String description) {
-// Generate the rule content for the given metric and instance
+    private String generateRule(String alertname, String metric, List<String> instances, String severity, String comparison, String value, String time, String summary, String description) {
+        // Generate the rule content for the given metric and instances
         String comparisonCharacter = getComparisonCharacter(comparison);
-        //String summaryNotice=getDescription(comparisonCharacter);
-        String rule = String.format(
-                "  - alert: %s\n" +
-                        "    expr: %s{instance=\"%s\"}  %s %s \n" +
-                        "    for: %s \n" +
-                        "    labels:\n" +
-                        "      severity: %s\n" +
-                        "      instance: %s\n" +
+        StringBuilder ruleBuilder = new StringBuilder();
 
-                        "    annotations:\n" +
-                        "      summary: %s \n" +
-                        "      description: %s \n"+"\n",
-                alertname,metric, instance, comparisonCharacter, value,time,severity,instance,summary, description);
+        for (String instance : instances) {
+            ruleBuilder.append(String.format(
+                    "  - alert: %s\n" +
+                            "    expr: %s{instance=\"%s\"} %s %s \n" +
+                            "    for: %s \n" +
+                            "    labels:\n" +
+                            "      severity: %s\n" +
+                            "      instance: %s\n" +
+                            "    annotations:\n" +
+                            "      summary: %s \n" +
+                            "      description: %s \n" +
+                            "\n",
+                    alertname, metric, instance, comparisonCharacter, value, time, severity, instance, summary, description));
+        }
 
-        return rule;
+        return ruleBuilder.toString();
     }
     public String getComparisonCharacter(String comparaison){
         if(comparaison.equals("equal")){
@@ -403,7 +396,7 @@ public class RuleFileGenerator {
         }
     }
 
-    public JsonNode getAlertStatus(String instance) {
+    public List<AlertInfo> getAlertStatus(String instance) {
         try {
             String alertStatusEndpoint = prometheusServerurl + "/api/v1/alerts";
 
@@ -419,8 +412,7 @@ public class RuleFileGenerator {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode alertsNode = objectMapper.readTree(responseBody).get("data").get("alerts");
 
-                // Create a JSON array to store the filtered alerts
-                JsonNode filteredAlerts = objectMapper.createArrayNode();
+                List<AlertInfo> filteredAlerts = new ArrayList<>();
 
                 // Process each alert and add the desired fields to the filtered alerts
                 for (JsonNode alertNode : alertsNode) {
@@ -429,19 +421,18 @@ public class RuleFileGenerator {
 
                     // Compare the instance label with the provided instance input
                     if (alertInstance.equals(instance)) {
-                        // Create a JSON object for the filtered alert
-                        JsonNode filteredAlert = objectMapper.createObjectNode();
+                        AlertInfo alertInfo = new AlertInfo();
 
-                        // Add the desired fields to the filtered alert
-                        ((ObjectNode) filteredAlert).put("alertname", alertNode.get("labels").get("alertname").asText());
-                        ((ObjectNode) filteredAlert).put("instance", alertNode.get("labels").get("instance").asText());
-                        ((ObjectNode) filteredAlert).put("job", alertNode.get("labels").get("job").asText());
-                        ((ObjectNode) filteredAlert).put("severity", alertNode.get("labels").get("severity").asText());
-                        ((ObjectNode) filteredAlert).put("state", alertNode.get("state").asText());
-                        ((ObjectNode) filteredAlert).put("activeAt", alertNode.get("activeAt").asText());
+                        // Set the desired fields in the AlertInfo object
+                        alertInfo.setAlertname(alertNode.get("labels").get("alertname").asText());
+                        alertInfo.setInstance(alertNode.get("labels").get("instance").asText());
+                        alertInfo.setJob(alertNode.get("labels").get("job").asText());
+                        alertInfo.setSeverity(alertNode.get("labels").get("severity").asText());
+                        alertInfo.setState(alertNode.get("state").asText());
+                        alertInfo.setActiveAt(alertNode.get("activeAt").asText());
 
-                        // Add the filtered alert to the filtered alerts array
-                        ((ArrayNode) filteredAlerts).add(filteredAlert);
+                        // Add the filtered alert to the list of filtered alerts
+                        filteredAlerts.add(alertInfo);
                     }
                 }
 

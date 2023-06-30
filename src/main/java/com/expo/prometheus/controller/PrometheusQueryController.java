@@ -2,6 +2,7 @@
 package com.expo.prometheus.controller;
 
 import com.expo.prometheus.model.OtherQuery;
+import com.expo.prometheus.model.QueryInfo;
 import com.expo.prometheus.service.PrometheusQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,7 +23,7 @@ import java.util.*;
 public class PrometheusQueryController {
     //@Value("${prometheus.server.url}")
     //private String prometheus_url;
-    private String prometheus_url="http://172.18.3.220:9090/";
+    private String prometheus_url="http://localhost:9090/";
     public PrometheusQuery prometheusQuery;
 
     public PrometheusQueryController(PrometheusQuery prometheusQuery) {
@@ -191,9 +192,21 @@ public class PrometheusQueryController {
 
     }
 
+
+    // A VOIIIIIIIIIIIIR parceque somemetrics mayest7a9ouch braces
+
     @GetMapping("/instance_metrics")
-    public JsonNode getInstanceMetrics(@RequestParam("ip") String ip, @RequestParam("port") String port) throws JsonProcessingException {
-        return this.prometheusQuery.getInstanceMetrics(ip, port);
+    public QueryInfo getInstanceMetrics(@RequestParam("instances") List<String> instance) throws Exception {
+        System.out.println("here");
+        if(instance.size()==1){
+            return  this.prometheusQuery.getInstanceMetrics(instance);
+
+        }
+        if(instance.size()>1){
+            return this.prometheusQuery.getCommonInstanceMetrics(instance);
+
+        }
+        return null;
     }
 }
 

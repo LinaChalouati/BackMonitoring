@@ -26,9 +26,10 @@ public class PrometheusAlertService {
 
         public void pushRuleFile(String ruleFilePath,String type ) throws IOException {
             if(type=="rule"){
+
                 // Copy the rule file to the Prometheus configuration directory
                 String copyCommand = "cp " + ruleFilePath + " " +prometheusConfigPath ;
-
+                System.out.println("copyCommand"+copyCommand);
                 executeShellCommand(copyCommand);
                 System.out.println("File copied to Prometheus configuration directory.");
 

@@ -1,19 +1,21 @@
 package com.expo.prometheus.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AlertInfo {
-    private String name;
+    private String alertname;
+    private String instance;
+    private String job;
+    private String severity;
     private String state;
-    private String startsAt;
-    private String endsAt;
-
-    public AlertInfo(String name, String state, String startsAt, String endsAt) {
-    }
+    private String activeAt;
 
 
-    // Getters and setters
 }

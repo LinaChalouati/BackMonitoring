@@ -1,8 +1,103 @@
 groups:
 - name: Prometheus alerts
   rules:
-  - alert: up status
-    expr: up{instance="172.18.2.236:9000"}  < 1
+  - alert: important alert2
+    expr: up{instance="localhost:9090"}  > 0
+    for: 5m
+    labels: {severity: warning, instance: 'localhost:9090'}
+    annotations: {summary: exemplesummaru, description: a basic description}
+  - alert: important alert3
+    expr: up{instance="localhost:9090"}  > 0
+    for: 5m
+    labels: {severity: warning, instance: 'localhost:9090'}
+    annotations: {summary: exemplesummaru, description: a basic description}
+  - alert: cpu
+    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5
     for: 1m
-    labels: {severity: critical, instance: '172.18.2.236:9000'}
-    annotations: {summary: asummaryexemple, description: cpu}
+    labels: {severity: critical, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: a second description}
+  - alert: a new test rule name
+    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: a second description}
+  - alert: cpu10
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a second description}
+  - alert: cpu11
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a third description}
+  - alert: cpu1
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: new name
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: test
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: another rule
+    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
+      0
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090'}
+    annotations: {summary: a basic summary, description: a base description}
+  - alert: another rule
+    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
+      0
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090'}
+    annotations: {summary: a basic summary, description: a base description}
+  - alert: again
+    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
+      0
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090'}
+    annotations: {summary: a basic summary, description: a base description}
+  - alert: again2.0
+    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090,192.168.1.19:9093"}  >
+      0
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090,192.168.1.19:9093'}
+    annotations: {summary: a basic summary, description: a base description}
+  - alert: again3.0
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090,192.168.1.19:9093"}  >
+      0
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090,192.168.1.19:9093'}
+    annotations: {summary: a basic summary, description: a base description}
+  - alert: test
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"} > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9090'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: test
+    expr: process_cpu_seconds_total{instance="192.168.1.19:9093"} > 0.5
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9093'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: test 2
+    expr: up{instance="192.168.1.19:9093"} < 1
+    for: 1m
+    labels: {severity: critical, instance: '192.168.1.19:9093'}
+    annotations: {summary: a summary, description: a third description2}
+  - alert: up status alert
+    expr: up{instance="192.168.1.19:9090"} < 1
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9090'}
+    annotations: {summary: a typical summary, description: a typical description}
+  - alert: up status alert
+    expr: up{instance="192.168.1.19:9093"} < 1
+    for: 1m
+    labels: {severity: Warning, instance: '192.168.1.19:9093'}
+    annotations: {summary: a typical summary, description: a typical description}
