@@ -45,17 +45,6 @@ public class RuleFileController {
         ruleFileGenerator.generateRuleFile();
         return "Rule file generated successfully.";
     }
-  /*  @GetMapping("/push-rule")
-    public String pushRuleFile() {
-        String ruleFilePath="src/main/resources/alert.rules.yml";
-        try {
-            prometheusService.pushRuleFile(ruleFilePath);
-            return "Rule file pushed to Prometheus server successfully.";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Failed to push the rule file to Prometheus server.";
-        }
-    }*/
 
     @PostMapping("/add-rule")
     public void addRuleToFile(@RequestParam(value="alertname")String alertname,@RequestParam(value = "instance")List <String> instance,@RequestParam(value = "metric")String metric,
@@ -68,10 +57,6 @@ public class RuleFileController {
     System.out.println("instalce"+instance);
         ruleFileGenerator.addRuleToFile(alertname,instance,metric,severity,comparaison,value,time,summary,description);
 
-
-
-  //      String ruleFilePath="src/main/resources/alert.rules.yml";
-//        prometheusService.pushRuleFile(ruleFilePath);
 
 
     }
@@ -135,16 +120,6 @@ public class RuleFileController {
         }
     }
 
-    /*@PostMapping("/get_rule_byname")
-    public ResponseEntity<RuleInfo> getRuleByName(@RequestParam(value = "rulename") String rulename) throws JsonProcessingException {
-        RuleInfo ruleInfo = ruleFileGenerator.getRuleByName(rulename);
-
-        if (ruleInfo != null) {
-            return ResponseEntity.ok(ruleInfo);
-        } else {
-            return ResponseEntity.status(404).body(null);
-        }
-    }*/
     // NEIN
     @PostMapping("/delete_alert")
     public ResponseEntity<Boolean> deleteAlertRule(@RequestParam(value = "rulename") String rulename) throws JsonProcessingException {

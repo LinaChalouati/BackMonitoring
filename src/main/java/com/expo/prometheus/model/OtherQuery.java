@@ -34,9 +34,9 @@ public class OtherQuery {
                                                                 "buildtime",//no
                                                                 "coverage",//no
                                                                 "dup",//no
-                                                                "vun",//no
-                                                                "bugs",//no
-                                                                "smells",//no
+                                                                "vun",//ok
+                                                                "bugs",//ok
+                                                                "smells",//ok
                                                                 "jdbcactive",//ok
                                                                 "jdbcidle",//ok
                                                                 "jdbcmin",//ok
@@ -66,11 +66,11 @@ public class OtherQuery {
                 "buildstatus", //no
                 "builderrors",//no
                 "buildtime",//no
-                "coverage", //no
+                "sonarqube_coverage{key=\"%s\"}", //no
                 "dup", //no
-                "vun", //no
-                "bugs", //no
-                "smells", //no
+                "sonarqube_vulnerabilities{key=\"%s\"}", //no
+                "sonarqube_bugs{key=\"%s\"}", //no
+                "sonarqube_code_smells{key=\"%s\"}", //no
                 "jdbc_connections_active{instance=\"%s\"}",
                 "jdbc_connections_idle{instance=\"%s\"}",
                 "jdbc_connections_min{instance=\"%s\"}",

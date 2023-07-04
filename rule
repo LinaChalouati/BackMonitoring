@@ -1,103 +1,159 @@
 groups:
 - name: Prometheus alerts
   rules:
-  - alert: important alert2
-    expr: up{instance="localhost:9090"}  > 0
-    for: 5m
-    labels: {severity: warning, instance: 'localhost:9090'}
-    annotations: {summary: exemplesummaru, description: a basic description}
-  - alert: important alert3
-    expr: up{instance="localhost:9090"}  > 0
-    for: 5m
-    labels: {severity: warning, instance: 'localhost:9090'}
-    annotations: {summary: exemplesummaru, description: a basic description}
-  - alert: cpu
-    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: 'localhost:9090'}
-    annotations: {summary: a summary, description: a second description}
-  - alert: a new test rule name
-    expr: process_cpu_seconds_total{instance="localhost:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: 'localhost:9090'}
-    annotations: {summary: a summary, description: a second description}
-  - alert: cpu10
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a second description}
-  - alert: cpu11
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a third description}
-  - alert: cpu1
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: new name
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: test
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"}  > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: another rule
-    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
-      0
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9090'}
-    annotations: {summary: a basic summary, description: a base description}
-  - alert: another rule
-    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
-      0
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9090'}
-    annotations: {summary: a basic summary, description: a base description}
-  - alert: again
-    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090"}  >
-      0
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9090'}
-    annotations: {summary: a basic summary, description: a base description}
-  - alert: again2.0
-    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="192.168.1.19:9090,192.168.1.19:9093"}  >
-      0
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9090,192.168.1.19:9093'}
-    annotations: {summary: a basic summary, description: a base description}
-  - alert: again3.0
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090,192.168.1.19:9093"}  >
-      0
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9090,192.168.1.19:9093'}
-    annotations: {summary: a basic summary, description: a base description}
-  - alert: test
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9090"} > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9090'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: test
-    expr: process_cpu_seconds_total{instance="192.168.1.19:9093"} > 0.5
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9093'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: test 2
+  - alert: adding a second rule
     expr: up{instance="192.168.1.19:9093"} < 1
-    for: 1m
-    labels: {severity: critical, instance: '192.168.1.19:9093'}
-    annotations: {summary: a summary, description: a third description2}
-  - alert: up status alert
-    expr: up{instance="192.168.1.19:9090"} < 1
-    for: 1m
+    for: 10s
+    labels: {severity: Critical, instance: '192.168.1.19:9093'}
+    annotations: {summary: a summary for alertmanager, description: here s a basic
+        description}
+  - alert: another rule name
+    expr: up{instance="192.168.1.19:3000"} > 1
+    for: 10s
+    labels: {severity: Warning, instance: '192.168.1.19:3000'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: a rule
+    expr: up{instance="192.168.1.19:9090"} > 0
+    for: 3m
     labels: {severity: Warning, instance: '192.168.1.19:9090'}
-    annotations: {summary: a typical summary, description: a typical description}
-  - alert: up status alert
-    expr: up{instance="192.168.1.19:9093"} < 1
-    for: 1m
-    labels: {severity: Warning, instance: '192.168.1.19:9093'}
-    annotations: {summary: a typical summary, description: a typical description}
+    annotations: {summary: a sum, description: a desc}
+  - alert: another rule name
+    expr: prometheus_tsdb_blocks_loaded{instance="localhost:9090"} < 1 
+    for: 15m 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: a 
+      description: a 
+
+
+  - alert: AAA
+    expr: up{instance="localhost:9090"} > 0 
+    for: 115m 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+  - alert: AAA
+    expr: up{instance="localhost:9093"} > 0 
+    for: 115m 
+    labels:
+      severity: Warning
+      instance: localhost:9093
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+
+  - alert: AAAAAa
+    expr: prometheus_tsdb_blocks_loaded{instance="localhost:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+
+  - alert: aaa
+    expr: up{instance="localhost:9090"} > 0 
+    for: 1m 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: a  
+      description: a 
+
+  - alert: aaa
+    expr: up{instance="localhost:9093"} > 0 
+    for: 1m 
+    labels:
+      severity: Warning
+      instance: localhost:9093
+    annotations:
+      summary: a  
+      description: a 
+
+
+  - alert: aa
+    expr: go_memstats_alloc_bytes{instance="localhost:9093"} > 0 
+    for: 2m 
+    labels:
+      severity: Warning
+      instance: localhost:9093
+    annotations:
+      summary: 3 
+      description: a 
+
+
+  - alert: aaa
+    expr: up{instance="localhost:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: a 
+      description: a 
+
+  - alert: aaa
+    expr: up{instance="localhost:9093"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: localhost:9093
+    annotations:
+      summary: a 
+      description: a 
+
+
+  - alert: aaa
+    expr: up{instance="192.168.1.19:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: 192.168.1.19:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+
+  - alert: aaa
+    expr: up{instance="192.168.1.19:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: 192.168.1.19:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+
+  - alert: aaa
+    expr: up{instance="192.168.1.19:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: 192.168.1.19:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+
+  - alert: aaa
+    expr: up{instance="192.168.1.19:9090"} > 0 
+    for: 3m 
+    labels:
+      severity: Warning
+      instance: 192.168.1.19:9090
+    annotations:
+      summary: a summary 
+      description: a summary 
+
+

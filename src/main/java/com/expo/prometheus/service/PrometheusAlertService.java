@@ -59,8 +59,9 @@ public class PrometheusAlertService {
                 System.out.println("Prometheus server restarted.");
             }
         }
+        //executer class
 
-        public void executeShellCommand(String command) throws IOException {
+        public boolean executeShellCommand(String command) throws IOException {
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.command("bash", "-c", command);
             processBuilder.inheritIO();
@@ -70,8 +71,11 @@ public class PrometheusAlertService {
                 if (exitCode != 0) {
                     throw new IOException("Failed to execute shell command: " + command);
                 }
+                return true;
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            return false;
         }
 }

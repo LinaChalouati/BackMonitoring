@@ -56,15 +56,14 @@ public class RuleFileGenerator {
         ruleFileContent.append("  rules:\n");
 
 
-
-        // Write the rule file to the resources directory
+        // Write the rule f  resources directory
         Files.writeString(Path.of(theLocalRulesFile), ruleFileContent.toString());
     }
 
 
-    public void addRuleToFile(String alertname, List<String> instances, String metric, String severity, String comparison, String value, String time, String summary, String description) throws IOException {
+    public void addRuleToFile(String alertname, List<String> instances, String metric, String severity, String comparaison, String value, String time, String summary, String description) throws IOException {
         try {
-            String rule = generateRule(alertname, metric, instances, severity, comparison, value, time, summary, description);
+            String rule = generateRule(alertname, metric, instances, severity, comparaison, value, time, summary, description);
             Path ruleFilePath = Path.of(theLocalRulesFile);
 
             if (Files.exists(ruleFilePath)) {
@@ -74,8 +73,10 @@ public class RuleFileGenerator {
             } else {
                 System.err.println("Rule File generated");
                 generateRuleFile();
-                Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
-                this.prometheusAlertService.pushRuleFile(theLocalRulesFile, "rule");
+                addRuleToFile(alertname,instances,metric,severity,comparaison,value,time,summary,description);
+
+                //Files.writeString(ruleFilePath, rule + "\n", StandardOpenOption.APPEND);
+              //  this.prometheusAlertService.pushRuleFile(theLocalRulesFile, "rule");
             }
         } catch (IOException e) {
             System.err.println("Failed to add the rule to the file: " + e.getMessage());
@@ -206,7 +207,6 @@ public class RuleFileGenerator {
                 // The rule does not exist
                 return false;
             }
-            // Write the modified content back to the configuration file
             yaml.dump(yamlObject, new FileWriter(theLocalRulesFile));
               System.out.println("hereeeeee"+theLocalRulesFile);
             return true;
@@ -233,21 +233,18 @@ public class RuleFileGenerator {
         // Check if the request was successful
         if (response.getStatusCode().is2xxSuccessful()) {
             String responseBody = response.getBody();
-
-            // Parse the JSON response and extract the rule information
+//parse
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(responseBody);
             JsonNode groupsNode = root.get("data").get("groups");
 
-            // Create a list to store the rule information
+            //  rule information
             List<RuleInfo> ruleInfoList = new ArrayList<>();
 
-            // Iterate over the rule groups
             for (JsonNode groupNode : groupsNode) {
                 JsonNode rulesNode = groupNode.get("rules");
                 System.out.println("rulesnode"+rulesNode);
 
-                // Iterate over the rules and extract relevant information
                 for (JsonNode ruleNode : rulesNode) {
                     String name = ruleNode.get("name").asText();
                     String query = ruleNode.get("query").asText();
@@ -278,32 +275,7 @@ public class RuleFileGenerator {
             return null;
         }
     }
-    /*
 
-    public RuleInfo getRuleByName(String ruleName) throws JsonProcessingException {
-        // Set the headers for the request
-        List<RuleInfo> rulesinfo=getRules();
-            // Iterate over the rules and search for the rule with the specified name
-            for (RuleInfo ruleNode : rulesinfo) {
-                String name = ruleNode.getName();
-                if (name.equals(ruleName)) {
-                    // Extract relevant information for the matching rule
-                    String query = ruleNode.getQuery();
-                    String duration = ruleNode.getDuration();
-                    String state = ruleNode.getState();
-
-
-                    // Create a RuleInfo object with the extracted information
-                    RuleInfo ruleInfo = new RuleInfo(name, query, duration,state);
-                    return ruleInfo;
-                }
-            }
-
-            // No rule with the specified name found
-            System.out.println("Rule with name '" + ruleName + "' not found.");
-            return null;
-
-    }*/
     // A voir later on
     public boolean deleteAlertRule(String alertName) {
         try {
@@ -380,14 +352,12 @@ public class RuleFileGenerator {
                 // The rule does not exist
                 return false;
             }
-            // Write the modified content back to the configuration file
             yaml.dump(yamlObject, new FileWriter(theLocalRulesFile));
             System.out.println("hereeeeee"+theLocalRulesFile);
 
 
             this.prometheusAlertService.pushRuleFile(theLocalRulesFile,"rule");
 
-            // Execute the command to restart or reload Prometheus
             this.prometheusAlertService.executeShellCommand(prometheusRestartCommand);
             return true;
         } catch (IOException e) {
@@ -400,30 +370,25 @@ public class RuleFileGenerator {
         try {
             String alertStatusEndpoint = prometheusServerurl + "/api/v1/alerts";
 
-            // Send the GET request to retrieve alert status
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(alertStatusEndpoint, HttpMethod.GET, null, String.class);
 
             // Check if the request was successful
             if (response.getStatusCode().is2xxSuccessful()) {
                 String responseBody = response.getBody();
-
+                System.out.println("fl get alert status "+responseBody);
                 // Parse the response body as JSON
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode alertsNode = objectMapper.readTree(responseBody).get("data").get("alerts");
 
                 List<AlertInfo> filteredAlerts = new ArrayList<>();
 
-                // Process each alert and add the desired fields to the filtered alerts
                 for (JsonNode alertNode : alertsNode) {
-                    // Get the instance label value
                     String alertInstance = alertNode.get("labels").get("instance").asText();
 
-                    // Compare the instance label with the provided instance input
                     if (alertInstance.equals(instance)) {
                         AlertInfo alertInfo = new AlertInfo();
 
-                        // Set the desired fields in the AlertInfo object
                         alertInfo.setAlertname(alertNode.get("labels").get("alertname").asText());
                         alertInfo.setInstance(alertNode.get("labels").get("instance").asText());
                         alertInfo.setJob(alertNode.get("labels").get("job").asText());
@@ -431,7 +396,6 @@ public class RuleFileGenerator {
                         alertInfo.setState(alertNode.get("state").asText());
                         alertInfo.setActiveAt(alertNode.get("activeAt").asText());
 
-                        // Add the filtered alert to the list of filtered alerts
                         filteredAlerts.add(alertInfo);
                     }
                 }
@@ -454,8 +418,6 @@ public class RuleFileGenerator {
 
         return "";
     }
-
-
 
 }
 

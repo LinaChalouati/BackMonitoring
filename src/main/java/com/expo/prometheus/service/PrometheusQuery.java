@@ -38,9 +38,10 @@ public class PrometheusQuery {
         String instance = ip + ":" + port;
         System.out.println("targetindice" + indiceexpr);
 
-        System.out.println("instance" + instance);
+        System.out.println("instance" + OtherQueryMap.containsKey(indiceexpr));
 
         if (OtherQueryMap.containsKey(indiceexpr)) {
+            System.out.println("lenaa fl query");
             String expr = OtherQueryMap.get(indiceexpr);
             expr = expr.replaceAll("%s", instance);
 
@@ -48,11 +49,6 @@ public class PrometheusQuery {
         } else {
             String wheredeployment = getDeploymentWhere(ip, port);
 
-        /*   if (wheredeployment.equals("VM") && VmMap.containsKey(indiceexpr)) {
-                 String expr=VmMap.get(indiceexpr);
-                 expr = expr.replaceAll("%s", instance);
-                return expr;
-            }*/
 
             if (wheredeployment.equals("K8s Cluster") && K8sMap.containsKey(indiceexpr)) {
                 String expr = String.format(K8sMap.get(indiceexpr), instance);

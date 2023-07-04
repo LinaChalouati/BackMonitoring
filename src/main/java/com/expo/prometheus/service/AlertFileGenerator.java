@@ -1,5 +1,6 @@
 package com.expo.prometheus.service;
 
+import com.expo.prometheus.model.AlertEmailInfo;
 import com.expo.prometheus.model.MailNotifInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -78,21 +79,15 @@ public class AlertFileGenerator {
 
 
     public void addRoute(String alertName, String receiverName, String instance, List<String> receiverEmails) throws IOException {
-        String routeConfig = new StringBuilder()
-                .append("  - match:\n")
-                .append("      alertname: ").append(alertName).append("\n")
-                .append("      instance: ").append(instance).append("\n")
-                .append("    receiver: ").append(receiverName).append("\n")
-                .append("    continue: true\n")
-                .toString();
 
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
 
             if (!Files.exists(alertFilePath)) {
-                System.err.println("Alert file does not exist. Please generate the file first.");
+                System.err.println("Alert file does not exist. Generating the file first.");
                 generateConfigFile();
-                return;
+               // addRoute(alertName, receiverName, instance, receiverEmails);
+
             }
 
             Map<String, Object> config = loadYamlConfig(alertFilePath);
@@ -233,14 +228,14 @@ public class AlertFileGenerator {
         }
     }
 
-    public void addEmailToReceiver(String receiverName, String email) throws IOException {
+    public boolean addEmailsToReceiver(String receiverName, List<String> emails) throws IOException {
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
 
             if (!Files.exists(alertFilePath)) {
                 System.err.println("Alert file does not exist. Please generate the file first.");
                 generateConfigFile();
-                return;
+                return false;
             }
 
             Map<String, Object> config = loadYamlConfig(alertFilePath);
@@ -258,14 +253,16 @@ public class AlertFileGenerator {
                                 receiver.put("email_configs", emailConfigs);
                             }
 
-                            Map<String, Object> emailMap = new HashMap<>();
-                            emailMap.put("to", email);
-                            emailConfigs.add(emailMap);
+                            for (String email : emails) {
+                                Map<String, Object> emailMap = new HashMap<>();
+                                emailMap.put("to", email);
+                                emailConfigs.add(emailMap);
+                            }
 
                             writeYamlConfig(config, alertFilePath);
 
-                            System.out.println("Email added to the receiver successfully.");
-                            return;
+                            System.out.println("Emails added to the receiver successfully.");
+                            return true;
                         }
                     }
                 }
@@ -275,9 +272,11 @@ public class AlertFileGenerator {
                 System.err.println("Invalid configuration file.");
             }
         } catch (IOException e) {
-            throw new IOException("Failed to add email to the receiver: " + e.getMessage(), e);
+            throw new IOException("Failed to add emails to the receiver: " + e.getMessage(), e);
         }
+        return false;
     }
+
 
     private void writeYamlConfig(Map<String, Object> config, Path filePath) throws IOException {
         DumperOptions options = new DumperOptions();
@@ -298,7 +297,7 @@ public class AlertFileGenerator {
     }
 
 
-    public boolean disableAlert(String alertName, String instance) throws IOException {
+    public boolean disableEnableAlert(String alertName, String instance) throws IOException {
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
 
@@ -325,8 +324,8 @@ public class AlertFileGenerator {
                                 // Check if the routeAlertName and routeInstance are not null before calling equals
                                 if (routeAlertName != null && routeInstance != null &&
                                         routeAlertName.equals(alertName) && routeInstance.equals(instance)) {
-                                    // Set the 'continue' flag to false to disable the alert
-                                    route.put("continue", false);
+                                    // Reverse the 'continue' flag value
+                                    route.put("continue", !((boolean) route.get("continue")));
                                 }
                             }
                         }
@@ -350,7 +349,6 @@ public class AlertFileGenerator {
         }
         return false;
     }
-
     // ok mrigl
 
     public boolean deleteAlert(String alertName, String instance) throws IOException {
@@ -486,6 +484,8 @@ public class AlertFileGenerator {
 
     public MailNotifInfo getEmailsByAlert(String alertName, String instance) throws IOException {
         List<String> emails = new ArrayList<>();
+        boolean state = false; // Initialize the state variable
+        String receiver = null; // Initialize the receiver variable
 
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
@@ -500,8 +500,7 @@ public class AlertFileGenerator {
                 if (config != null) {
                     // Get the 'route' section from the configuration
                     Map<String, Object> routeSection = (Map<String, Object>) config.get("route");
-                    List<MailNotifInfo> receivers = parseReceivers(config.get("receivers"));
-
+                    List<MailNotifInfo> receivers = parseReceivers(config.get("receivers"), instance, state);
                     if (routeSection != null && receivers != null) {
                         List<Map<String, Object>> routes = (List<Map<String, Object>>) routeSection.get("routes");
 
@@ -515,8 +514,9 @@ public class AlertFileGenerator {
                                 // Check if the routeAlertName and routeInstance are not null before calling equals
                                 if (routeAlertName != null && routeInstance != null &&
                                         routeAlertName.equals(alertName) && routeInstance.equals(instance)) {
-                                    String receiverName = (String) route.get("receiver");
-                                    emails.addAll(getEmailsByReceiverName(receiverName, receivers));
+                                    receiver = (String) route.get("receiver"); // Get the receiver name
+                                    emails.addAll(getEmailsByReceiverName(receiver, receivers));
+                                    state = (boolean) route.get("continue"); // Update the state variable
                                     break;
                                 }
                             }
@@ -528,16 +528,16 @@ public class AlertFileGenerator {
             } else {
                 System.err.println("Alert file does not exist. Please generate the file first.");
                 generateConfigFile();
-                getEmailsByAlert(alertName, instance);
+                return getEmailsByAlert(alertName, instance);
             }
         } catch (IOException e) {
             System.err.println("Failed to retrieve emails for the alert: " + e.getMessage());
         }
 
-        return new MailNotifInfo(alertName,instance, emails);
+        return new MailNotifInfo(alertName, instance, emails, state, receiver);
     }
 
-    private List<MailNotifInfo> parseReceivers(Object receiversObject) {
+    private List<MailNotifInfo> parseReceivers(Object receiversObject, String instance, boolean state) {
         List<MailNotifInfo> receivers = new ArrayList<>();
 
         if (receiversObject instanceof List) {
@@ -546,12 +546,15 @@ public class AlertFileGenerator {
             for (Map<String, Object> receiverMap : receiversList) {
                 String name = (String) receiverMap.get("name");
                 List<String> emails = getEmailsFromReceiverMap(receiverMap);
-                receivers.add(new MailNotifInfo(name, instance,emails));
+                String receiver = name; // Set the receiver value as the name
+                receivers.add(new MailNotifInfo(name, instance, emails, state, receiver)); // Pass the state and receiver parameters
             }
         }
 
         return receivers;
     }
+
+
 
     private List<String> getEmailsFromReceiverMap(Map<String, Object> receiverMap) {
         List<String> emails = new ArrayList<>();
@@ -569,11 +572,12 @@ public class AlertFileGenerator {
 
         return emails;
     }
+
     private List<String> getEmailsByReceiverName(String receiverName, List<MailNotifInfo> receivers) {
         List<String> emails = new ArrayList<>();
 
         for (MailNotifInfo receiver : receivers) {
-            if (receiver.getAlert_name().equals(receiverName)) {
+            if (receiver.getAlertname().equals(receiverName)) {
                 emails.addAll(receiver.getEmails());
                 break;
             }
@@ -582,6 +586,87 @@ public class AlertFileGenerator {
         return emails;
     }
 
+    public List<AlertEmailInfo> getAlertsAndEmailsByInstance(String instance) throws IOException {
+        List<AlertEmailInfo> alertEmailInfos = new ArrayList<>();
+
+        try {
+            Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
+
+            if (Files.exists(alertFilePath)) {
+                // Load the configuration file as a YAML object
+                Yaml yaml = new Yaml();
+
+                // Parse the configuration file
+                Map<String, Object> config = yaml.load(Files.newInputStream(alertFilePath));
+
+                if (config != null) {
+                    // Get the 'route' section from the configuration
+                    Map<String, Object> routeSection = (Map<String, Object>) config.get("route");
+
+                    if (routeSection != null) {
+                        List<Map<String, Object>> routes = (List<Map<String, Object>>) routeSection.get("routes");
+
+                        if (routes != null) {
+                            for (Map<String, Object> route : routes) {
+                                Map<String, Object> match = (Map<String, Object>) route.get("match");
+                                String routeInstance = (String) match.get("instance");
+                                String alertName = (String) match.get("alertname");
+
+                                if (routeInstance != null && routeInstance.equals(instance)) {
+                                    String receiver = (String) route.get("receiver"); // Get the receiver name
+
+                                    List<String> emails = getEmailsByReceiverName(receiver, config);
+
+                                    // Create AlertEmailInfo object and add it to the list
+                                    AlertEmailInfo alertEmailInfo = new AlertEmailInfo(alertName, instance, receiver, emails);
+                                    alertEmailInfos.add(alertEmailInfo);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    System.err.println("Invalid configuration file.");
+                }
+            } else {
+                System.err.println("Alert file does not exist. Please generate the file first.");
+                generateConfigFile();
+                return getAlertsAndEmailsByInstance(instance);
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to retrieve alerts and emails for the instance: " + e.getMessage());
+        }
+
+        return alertEmailInfos;
+    }
+
+    private List<String> getEmailsByReceiverName(String receiverName, Map<String, Object> config) {
+        List<String> emails = new ArrayList<>();
+
+        List<Map<String, Object>> receivers = (List<Map<String, Object>>) config.get("receivers");
+
+        if (receivers != null) {
+            for (Map<String, Object> receiver : receivers) {
+                String name = (String) receiver.get("name");
+
+                if (receiverName.equals(name)) {
+                    List<Map<String, String>> emailConfigs = (List<Map<String, String>>) receiver.get("email_configs");
+
+                    if (emailConfigs != null) {
+                        for (Map<String, String> emailConfig : emailConfigs) {
+                            String email = emailConfig.get("to");
+                            if (email != null) {
+                                emails.add(email);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return emails;
+    }
 
 }
 

@@ -26,6 +26,7 @@ public class PrometheusQueryController {
     private String prometheus_url="http://localhost:9090/";
     public PrometheusQuery prometheusQuery;
 
+
     public PrometheusQueryController(PrometheusQuery prometheusQuery) {
         this.prometheusQuery = prometheusQuery;
     }
@@ -192,6 +193,7 @@ public class PrometheusQueryController {
 
     }
 
+    // c bon resolved
 
     // A VOIIIIIIIIIIIIR parceque somemetrics mayest7a9ouch braces
 

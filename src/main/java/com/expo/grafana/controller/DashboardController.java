@@ -1,6 +1,7 @@
 package com.expo.grafana.controller;
 
 import com.expo.grafana.service.DashboardBuilder;
+import com.expo.grafana.service.OverViewPanelsService;
 import com.expo.prometheus.service.PrometheusQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,15 +9,13 @@ import com.expo.grafana.service.GrafanaClient;
 import com.expo.grafana.service.PanelClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.dockerjava.api.exception.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 //kiff kiff à verifier le path du panels here
@@ -36,6 +35,12 @@ public class DashboardController {
     private PanelClient panelClient;
     @Autowired
     private PrometheusQuery prometheusQuery;
+    private final OverViewPanelsService overViewPanelsService;
+
+    public DashboardController(OverViewPanelsService overViewPanelsService) {
+        this.overViewPanelsService = overViewPanelsService;
+    }
+
 
     @PostMapping("/dashboard")
     public ResponseEntity<?> createDashboard(@RequestParam(value = "title") String projectName,
@@ -206,8 +211,13 @@ public class DashboardController {
         }
     }
 
+    @PostMapping("/generic_panel")
+    public void addGenericPanel(@RequestParam(value = "dashboardTitle") String dashboardTitle,  @RequestParam(value = "ip") String ip, @RequestParam(value = "port") String port,
+                                @RequestParam(value = "appType") String appType) throws Exception {
+        System.out.println("hereee");
+        System.out.println("dashboardTitle"+dashboardTitle);
+        System.out.println("appType"+appType);
 
-
-
-
+        overViewPanelsService.addPanel(dashboardTitle, ip,port, appType);
+    }
 }
