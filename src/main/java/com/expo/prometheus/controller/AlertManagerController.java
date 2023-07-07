@@ -39,6 +39,19 @@ public class AlertManagerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
     }
+    @PostMapping("/add-team")
+    public ResponseEntity<Boolean> addTeam(
+            @RequestParam("alertname") String alertname,
+            @RequestParam("receivername") String receivername,
+            @RequestParam("instance") String instance) {
+        try {
+            alertFileGenerator.addTeam(alertname, receivername, instance);
+            return ResponseEntity.ok(true);
+        } catch (IOException e) {
+            String errorMessage = "Failed to add route: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
 
 
     @PostMapping("/add-new-receiver")

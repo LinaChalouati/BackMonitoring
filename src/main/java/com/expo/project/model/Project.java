@@ -1,5 +1,7 @@
         package com.expo.project.model;
 
+        import com.expo.login.model.Team;
+        import com.expo.login.model.User;
         import com.fasterxml.jackson.annotation.JsonProperty;
         import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
         import jakarta.persistence.*;
@@ -23,7 +25,7 @@
         public class Project {
                 @Id
                 @GeneratedValue(strategy = GenerationType.IDENTITY)
-                private Integer id;
+                private Long id;
 
                 @NotBlank(message = "Project name cannot be blank")
                 @Column(name = "project_name")
@@ -46,7 +48,24 @@
                 @Column(name = "ip_addresses")
                 private String ipAddresses;
 
+                @Column(name = "ms_names")
+                private String msnames;
+                @Column(name="dashboard_uid")
+                private String uid;
+                @Column(name="deployment")
+                private String deployment;
 
+                @ManyToMany
+                @JoinTable(
+                        name = "project_team_mapping",
+                        joinColumns = @JoinColumn(name = "project_id"),
+                        inverseJoinColumns = @JoinColumn(name = "team_id")
+                )
+                private List<Team> teams;
+
+
+                @ManyToMany(mappedBy = "projects")
+                private List<User> users;
 
                 public Project() {}
         }

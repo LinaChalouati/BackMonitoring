@@ -1,159 +1,78 @@
 groups:
 - name: Prometheus alerts
   rules:
-  - alert: adding a second rule
-    expr: up{instance="192.168.1.19:9093"} < 1
-    for: 10s
-    labels: {severity: Critical, instance: '192.168.1.19:9093'}
-    annotations: {summary: a summary for alertmanager, description: here s a basic
-        description}
   - alert: another rule name
     expr: up{instance="192.168.1.19:3000"} > 1
     for: 10s
     labels: {severity: Warning, instance: '192.168.1.19:3000'}
     annotations: {summary: a summary, description: a summary}
-  - alert: a rule
+  - alert: AAA
+    expr: up{instance="localhost:9090"} > 0
+    for: 115m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: AAA
+    expr: up{instance="localhost:9093"} > 0
+    for: 115m
+    labels: {severity: Warning, instance: 'localhost:9093'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: AAAAAa
+    expr: prometheus_tsdb_blocks_loaded{instance="localhost:9090"} > 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: aaa
+    expr: up{instance="localhost:9090"} > 0
+    for: 1m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a, description: a}
+  - alert: aaa
+    expr: up{instance="localhost:9093"} > 0
+    for: 1m
+    labels: {severity: Warning, instance: 'localhost:9093'}
+    annotations: {summary: a, description: a}
+  - alert: aa
+    expr: go_memstats_alloc_bytes{instance="localhost:9093"} > 0
+    for: 2m
+    labels: {severity: Warning, instance: 'localhost:9093'}
+    annotations: {summary: 3, description: a}
+  - alert: aaa
+    expr: up{instance="localhost:9090"} > 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a, description: a}
+  - alert: aaa
+    expr: up{instance="localhost:9093"} > 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9093'}
+    annotations: {summary: a, description: a}
+  - alert: aaa
     expr: up{instance="192.168.1.19:9090"} > 0
     for: 3m
     labels: {severity: Warning, instance: '192.168.1.19:9090'}
-    annotations: {summary: a sum, description: a desc}
+    annotations: {summary: a summary, description: a summary}
   - alert: another rule name
-    expr: prometheus_tsdb_blocks_loaded{instance="localhost:9090"} < 1 
-    for: 15m 
-    labels:
-      severity: Warning
-      instance: localhost:9090
-    annotations:
-      summary: a 
-      description: a 
-
-
-  - alert: AAA
-    expr: up{instance="localhost:9090"} > 0 
-    for: 115m 
-    labels:
-      severity: Warning
-      instance: localhost:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-  - alert: AAA
-    expr: up{instance="localhost:9093"} > 0 
-    for: 115m 
-    labels:
-      severity: Warning
-      instance: localhost:9093
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
-  - alert: AAAAAa
-    expr: prometheus_tsdb_blocks_loaded{instance="localhost:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: localhost:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
-  - alert: aaa
-    expr: up{instance="localhost:9090"} > 0 
-    for: 1m 
-    labels:
-      severity: Warning
-      instance: localhost:9090
-    annotations:
-      summary: a  
-      description: a 
-
-  - alert: aaa
-    expr: up{instance="localhost:9093"} > 0 
-    for: 1m 
-    labels:
-      severity: Warning
-      instance: localhost:9093
-    annotations:
-      summary: a  
-      description: a 
-
-
-  - alert: aa
-    expr: go_memstats_alloc_bytes{instance="localhost:9093"} > 0 
-    for: 2m 
-    labels:
-      severity: Warning
-      instance: localhost:9093
-    annotations:
-      summary: 3 
-      description: a 
-
-
-  - alert: aaa
-    expr: up{instance="localhost:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: localhost:9090
-    annotations:
-      summary: a 
-      description: a 
-
-  - alert: aaa
-    expr: up{instance="localhost:9093"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: localhost:9093
-    annotations:
-      summary: a 
-      description: a 
-
-
-  - alert: aaa
-    expr: up{instance="192.168.1.19:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: 192.168.1.19:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
-  - alert: aaa
-    expr: up{instance="192.168.1.19:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: 192.168.1.19:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
-  - alert: aaa
-    expr: up{instance="192.168.1.19:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: 192.168.1.19:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
-  - alert: aaa
-    expr: up{instance="192.168.1.19:9090"} > 0 
-    for: 3m 
-    labels:
-      severity: Warning
-      instance: 192.168.1.19:9090
-    annotations:
-      summary: a summary 
-      description: a summary 
-
-
+    expr: up{instance="192.168.1.19:9093"} > 0
+    for: 2m
+    labels: {severity: Warning, instance: '192.168.1.19:9093'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: another rule name
+    expr: up{instance="192.168.1.19:9090"} > 0
+    for: 5m
+    labels: {severity: Warning, instance: '192.168.1.19:9090'}
+    annotations: {summary: a, description: a}
+  - alert: another rule name
+    expr: up{instance="localhost:4200"} > 0
+    for: 2m
+    labels: {severity: Warning, instance: 'localhost:4200'}
+    annotations: {summary: a summary, description: a}
+  - alert: helloworld2
+    expr: up{instance="localhost:4200"} > 0
+    for: 5m
+    labels: {severity: Critical, instance: 'localhost:4200'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: another rule name
+    expr: go_gc_duration_seconds{instance="localhost:9090"} > 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: another description}

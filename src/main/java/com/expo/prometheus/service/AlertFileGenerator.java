@@ -128,6 +128,57 @@ public class AlertFileGenerator {
         }
     }
 
+
+
+    public void addTeam(String alertName, String receiverName, String instance) throws IOException {
+
+        try {
+            Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
+
+            if (!Files.exists(alertFilePath)) {
+                System.err.println("Alert file does not exist. Generating the file first.");
+                generateConfigFile();
+                // addRoute(alertName, receiverName, instance, receiverEmails);
+
+            }
+
+            Map<String, Object> config = loadYamlConfig(alertFilePath);
+
+            if (config == null) {
+                config = new LinkedHashMap<>();
+            }
+
+            Map<String, Object> routeSection = (Map<String, Object>) config.get("route");
+
+            if (routeSection == null) {
+                routeSection = new LinkedHashMap<>();
+                config.put("route", routeSection);
+            }
+
+            List<Map<String, Object>> routes = (List<Map<String, Object>>) routeSection.get("routes");
+
+            if (routes == null) {
+                routes = new ArrayList<>();
+                routeSection.put("routes", routes);
+            }
+
+            Map<String, Object> newRoute = new LinkedHashMap<>();
+            Map<String, Object> matchLabels = new LinkedHashMap<>();
+            matchLabels.put("alertname", alertName);
+            matchLabels.put("instance", instance);
+            newRoute.put("match", matchLabels);
+            newRoute.put("receiver", receiverName);
+            newRoute.put("continue", true);
+            routes.add(newRoute);
+
+            writeYamlConfig(config, alertFilePath);
+
+            System.out.println("Route added to the file successfully.");
+        } catch (IOException e) {
+            throw new IOException("Failed to add the route to the file: " + e.getMessage(), e);
+        }
+    }
+
     public void addReceiverToFile(String receiverName, List<String> receiverEmails) throws IOException {
         try {
             Path alertFilePath = Path.of(RESOURCES_DIRECTORY, ALERT_FILE_NAME);
