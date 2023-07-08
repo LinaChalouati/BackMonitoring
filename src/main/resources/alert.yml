@@ -1,0 +1,119 @@
+global: {resolve_timeout: 5m, smtp_smarthost: 'smtp.example.com:587', smtp_from: alerts@example.com,
+  smtp_auth_username: username, smtp_auth_password: password}
+route:
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: default-receiver
+  group_by: [alertname]
+  routes:
+  - match: {alertname: test123, instance: '192.168.1.19:9090'}
+    receiver: choclata
+    continue: false
+  - match: {alertname: adding a second rule, instance: '192.168.1.19:9093'}
+    receiver: mloukheya
+    continue: false
+  - match: {alertname: tamtouma, instance: '192.168.1.19:9093'}
+    receiver: tamtouma
+    continue: false
+  - match: {alertname: a new rule, instance: '192.168.1.19:9090'}
+    receiver: a new team name
+    continue: true
+  - match: {alertname: a new alert prometheus, instance: '192.168.1.19:9090'}
+    receiver: test prometheus
+    continue: true
+  - match: {alertname: another rule name, instance: '192.168.1.19:3000'}
+    receiver: a team
+    continue: true
+  - match: {alertname: a rule, instance: '192.168.1.19:9090'}
+    receiver: team name
+    continue: true
+  - match: {alertname: another rule name, instance: 'localhost:9090'}
+    receiver: a
+    continue: true
+  - match: {alertname: AAA, instance: 'localhost:9090,localhost:9093'}
+    receiver: a
+    continue: true
+  - match: {alertname: AAAAAa, instance: 'localhost:9090'}
+    receiver: a team
+    continue: true
+  - match: {alertname: aaa, instance: 'localhost:9090,localhost:9093'}
+    receiver: a
+    continue: true
+  - match: {alertname: aa, instance: 'localhost:9093'}
+    receiver: a
+    continue: true
+  - match: {alertname: aaa, instance: 'localhost:9090,localhost:9093'}
+    receiver: a
+    continue: true
+  - match: {alertname: another alert, instance: 'localhost:9090,localhost:9093'}
+    receiver: team
+    continue: true
+  - match: {alertname: another alert2, instance: 'localhost:9090,localhost:9093'}
+    receiver: team
+    continue: true
+  - match: {alertname: another alert2, instance: 'localhost:9090,localhost:9093'}
+    receiver: team
+    continue: true
+  - match: {alertname: another alert3, instance: 'localhost:9090,localhost:9093'}
+    receiver: team
+    continue: true
+  - match: {alertname: another alert4, instance: 'localhost:9090,localhost:9093'}
+    receiver: team
+    continue: true
+  - match: {alertname: hello world, instance: '192.168.1.19:9090'}
+    receiver: choclata
+    continue: true
+  - match: {alertname: another rule, instance: '192.168.1.19:9090'}
+    receiver: test prometheus
+    continue: true
+  - match: {alertname: shoutout to another rule, instance: '192.168.1.19:9090'}
+    receiver: test prometheus
+    continue: true
+  - match: {alertname: another rule name, instance: '192.168.1.19:9090'}
+    receiver: test prometheus
+    continue: true
+  - match: {alertname: another rule name, instance: '192.168.1.19:9093'}
+    receiver: tamtouma
+    continue: true
+  - match: {alertname: another rule name, instance: '192.168.1.19:9090'}
+    receiver: choclata
+    continue: true
+  - match: {alertname: helloworld2, instance: 'localhost:4200'}
+    receiver: hello world
+    continue: true
+  - match: {alertname: another rule name, instance: 'localhost:9090'}
+    receiver: a team
+    continue: true
+receivers:
+- name: default-receiver
+  email_configs:
+  - {to: default@example.com}
+- name: choclata
+  email_configs: []
+- name: mloukheya
+  email_configs:
+  - {to: box@gmail.com}
+- name: tamtouma
+  email_configs: []
+- name: a new team name
+  email_configs: []
+- name: test prometheus
+  email_configs: []
+- name: a team
+  email_configs:
+  - {to: team@gmail.com}
+- name: team name
+  email_configs:
+  - {to: lina.chalouati@eniso.u-sousse.tn}
+- name: a
+  email_configs:
+  - {to: a new member}
+- name: team
+  email_configs: []
+- name: team
+  email_configs: []
+- name: hello world
+  email_configs:
+  - {to: addr@icloud.com}
+  - {to: hello@gmail.com}
