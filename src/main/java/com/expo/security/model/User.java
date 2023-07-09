@@ -1,5 +1,6 @@
 package com.expo.security.model;
 
+import com.expo.project.model.Project;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.expo.teams.model.Team;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +43,8 @@ public class User implements UserDetails {
   )
   private List<Team> teams;
 
+  @ManyToMany(mappedBy = "users")
+  private List<Project> projects;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
