@@ -4,6 +4,7 @@
         import com.expo.teams.model.Team;
         import jakarta.persistence.*;
         import lombok.AllArgsConstructor;
+        import lombok.Builder;
         import lombok.Getter;
         import lombok.Setter;
 
@@ -16,6 +17,7 @@
         @AllArgsConstructor
         @Getter
         @Setter
+        @Builder
         public class Project {
                 @Id
                 @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,10 +58,10 @@
                         inverseJoinColumns = @JoinColumn(name = "team_id")
                 )
                 private List<Team> teams;
-
+/*
 
                 @ManyToMany(mappedBy = "projects")
-                private List<User> users;
+                private List<User> users;*/
 
                 public Project() {}
         }

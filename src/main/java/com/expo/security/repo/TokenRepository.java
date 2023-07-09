@@ -1,5 +1,6 @@
-package com.expo.security.model;
+package com.expo.security.repo;
 
+import com.expo.security.model.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

@@ -1,11 +1,9 @@
 package com.expo.project.model;
 
 
+import com.expo.teams.model.Team;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "project_teams")
@@ -13,6 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
+
 public class ProjectTeam {
 
     @Id
@@ -23,8 +23,8 @@ public class ProjectTeam {
     @JoinColumn(name = "project_id")
     private Project project;
 
-   /* @ManyToOne
+    @ManyToOne
     @JoinColumn(name = "team_id")
-    private Team team;*/
+    private Team team;
 
 }

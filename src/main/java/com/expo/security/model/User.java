@@ -1,6 +1,7 @@
 package com.expo.security.model;
 
 import com.expo.project.model.Project;
+import com.expo.teams.model.Team;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.expo.teams.model.Team;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,13 +38,21 @@ public class User implements UserDetails {
   @ManyToMany
   @JoinTable(
           name = "user_teams",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "team_id")
+          joinColumns = @JoinColumn(name = "user_id",referencedColumnName = "id"),
+          inverseJoinColumns = @JoinColumn(name = "team_id",referencedColumnName = "id")
   )
   private List<Team> teams;
 
-  @ManyToMany(mappedBy = "users")
-  private List<Project> projects;
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<UserRole> userRoles;
+/*
+  @ManyToMany
+  @JoinTable(
+          name = "user_projects",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "project_id")
+  )
+  private List<Project> projects;*/
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

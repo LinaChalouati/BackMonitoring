@@ -26,17 +26,18 @@ public class ProjectServiceImpl implements ProjectService {
         Optional<Project> project = projectRepository.findById(Long.valueOf(id));
         return project.orElse(null);
     }
+
     @Override
     public Project getProjectByName(String projectName) {
         Optional<Project> project = Optional.ofNullable(projectRepository.findByProjectName(projectName));
         return project.orElse(null);
     }
 
-
     @Override
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
     }
+
     @Override
     public List<Map<String, String>> getIpAddressesByProjectId(Long projectId) {
         List<Map<String, String>> result = new ArrayList<>();
@@ -57,7 +58,4 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return result;
     }
-
-
-
 }

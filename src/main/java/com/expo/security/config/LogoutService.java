@@ -1,6 +1,6 @@
 package com.expo.security.config;
 
-import com.expo.security.model.TokenRepository;
+import com.expo.security.repo.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
