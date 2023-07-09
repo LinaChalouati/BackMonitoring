@@ -7,22 +7,17 @@ import com.expo.prometheus.model.RuleInfo;
 import com.expo.prometheus.service.PrometheusAlertService;
 import com.expo.prometheus.service.RuleFileGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 @RestController
+@RequestMapping("/api/prometheus/rulefile")
 @CrossOrigin(origins = "*")
 public class RuleFileController {
     private final RuleFileGenerator ruleFileGenerator;
@@ -40,7 +35,7 @@ public class RuleFileController {
         this.prometheusService = prometheusService;
     }
 
-    @GetMapping("/generate-rule-file")
+        @GetMapping("/generate-rule-file")
     public String generateRuleFile() throws IOException {
         ruleFileGenerator.generateRuleFile();
         return "Rule file generated successfully.";

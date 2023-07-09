@@ -1,7 +1,6 @@
 package com.expo.project.service;
 
 import com.expo.project.model.Project;
-import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,21 +1,15 @@
         package com.expo.project.model;
 
-        import com.expo.login.model.Team;
-        import com.expo.login.model.User;
-        import com.fasterxml.jackson.annotation.JsonProperty;
-        import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+        import com.expo.security.model.User;
+        import com.expo.teams.model.Team;
         import jakarta.persistence.*;
         import lombok.AllArgsConstructor;
         import lombok.Getter;
         import lombok.Setter;
-        import org.hibernate.annotations.Type;
 
         import javax.validation.constraints.NotBlank;
-        import java.util.List;
-        import java.util.Map;
-
-        import javax.validation.constraints.NotEmpty;
         import javax.validation.constraints.NotNull;
+        import java.util.List;
 
         @Entity
         @Table(name = "projects")

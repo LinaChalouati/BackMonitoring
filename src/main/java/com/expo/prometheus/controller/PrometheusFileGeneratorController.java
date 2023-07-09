@@ -1,14 +1,13 @@
 package com.expo.prometheus.controller;
 
 import com.expo.prometheus.service.PrometheusConfigFileGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-@RestController
+@RequestMapping("/api/prometheus/filegenerator")
 @CrossOrigin(origins = "*")
-
+@RestController
 public class PrometheusFileGeneratorController {
     private final PrometheusConfigFileGenerator prometheusConfigFileGenerator;
     public PrometheusFileGeneratorController(PrometheusConfigFileGenerator prometheusConfigFileGenerator) {

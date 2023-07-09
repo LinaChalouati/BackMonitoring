@@ -34,8 +34,8 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import static com.google.common.base.Predicates.equalTo;
 
 @RestController
-@RequestMapping("/api")
-
+@RequestMapping("/api/healthcheck")
+@CrossOrigin("*")
 public class HealthCheck {
 
         @GetMapping("/health") //json

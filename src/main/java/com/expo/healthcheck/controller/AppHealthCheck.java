@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.Socket;
 
+//@RestController
 @RestController
+@RequestMapping("/api/app/healthcheck")
 @CrossOrigin("*")
 public class AppHealthCheck {
  private AppHealthCheckService checkHealth;

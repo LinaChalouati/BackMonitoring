@@ -1,12 +1,12 @@
 package com.expo.grafana.controller;
 
 import com.expo.grafana.service.DashboardBuilder;
+import com.expo.grafana.service.GrafanaClient;
 import com.expo.grafana.service.OverViewPanelsService;
+import com.expo.grafana.service.PanelClient;
 import com.expo.prometheus.service.PrometheusQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.expo.grafana.service.GrafanaClient;
-import com.expo.grafana.service.PanelClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +15,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 
 //kiff kiff à verifier le path du panels here
 // f actia temchili .get("dashboard").get(panels) f pc mteei .get("rows").get(0).get("panels") c donc à verifier aalech (tested 06 Mai 2023)
 //ps il y'avait un changement de la version du grafana que j'utilise donc peut etre l json à générer tbadlet l format mteeo
 
+//@RestController
+@RequestMapping("/api/grafana")
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class DashboardController {
 
     @Autowired

@@ -2,22 +2,17 @@ package com.expo.project.controller;
 
 
 import com.expo.project.model.Project;
-import com.expo.project.repo.ProjectRepository;
 import com.expo.project.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import static org.springframework.data.util.TypeUtils.type;
-
 @RestController
+@RequestMapping("/api/project")
 @CrossOrigin("*")
 public class ProjectController {
 
@@ -54,7 +49,7 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
     }
-    @GetMapping("/getprojectbyname")
+        @GetMapping("/getprojectbyname")
     public ResponseEntity<Project> getProjectByName(@RequestParam (value = "projectname") String project_name) {
         Project project = projectService.getProjectByName(project_name);
         System.out.println(project);

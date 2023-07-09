@@ -1,10 +1,7 @@
 package com.expo.alerts.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 
 //l partie hedhi bch tetbadel , à savoir , instead i'll be using prometheus for the alertes

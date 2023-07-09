@@ -4,12 +4,10 @@ package com.expo.prometheus.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.xml.transform.Result;
 import java.util.List;
 import java.util.Map;
 
