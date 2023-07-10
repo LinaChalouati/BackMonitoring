@@ -1,0 +1,25 @@
+groups:
+- name: Prometheus alerts
+  rules:
+  - alert: second rule
+    expr: prometheus_target_scrape_pool_targets{instance="localhost:9090"} > 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: a summary, description: a summary}
+  - alert: hello world 3
+    expr: prometheus_target_scrapes_sample_out_of_order_total{instance="localhost:9090"}
+      < 0
+    for: 3m
+    labels: {severity: Warning, instance: 'localhost:9090'}
+    annotations: {summary: summary, description: description}
+  - alert: another rule name
+    expr: prometheus_target_scrape_pool_targets{instance="localhost:9090"} > 0 
+    for: 3l 
+    labels:
+      severity: Warning
+      instance: localhost:9090
+    annotations:
+      summary: summary 
+      description: summary 
+
+

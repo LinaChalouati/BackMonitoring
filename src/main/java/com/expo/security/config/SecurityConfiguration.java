@@ -50,7 +50,8 @@ public class SecurityConfiguration {
                     "api/alertmanager/**",
                     "api/prometheus/**",
                     "api/project/**",
-                    "api/app/healthcheck/grafana_health/**"
+                    "api/app/healthcheck/grafana_health/**",
+                    "api/teams/**"
             )
             .permitAll()
             .requestMatchers(
