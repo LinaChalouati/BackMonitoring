@@ -17,7 +17,7 @@ public class ExpoApplication {
 		SpringApplication.run(ExpoApplication.class, args);
 
 	}
-	@Bean
+	/*@Bean
 	public CommandLineRunner commandLineRunner(
 			AuthenticationService service
 	) {
@@ -41,6 +41,6 @@ public class ExpoApplication {
 			System.out.println("Manager token: " + service.register(manager).getAccessToken());
 
 		};
-	}
+	}*/
 
 }

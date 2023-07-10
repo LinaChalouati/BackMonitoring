@@ -4,6 +4,7 @@ import com.expo.security.model.User;
 import com.expo.teams.model.Team;
 import com.expo.teams.repo.TeamRepository;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class TeamController {
 
 
     @DeleteMapping("/delete_team")
-    public ResponseEntity<Boolean> deleteTeam(@RequestParam String teamname) {
+    public ResponseEntity<Boolean> deleteTeam(@RequestParam (value="teamname")String teamname) {
         Optional<Team> teamOptional = teamRepository.findByTeamName(teamname);
         if (teamOptional.isPresent()) {
             Team team = teamOptional.get();
@@ -40,6 +41,18 @@ public class TeamController {
             return ResponseEntity.ok(true);
         }
         return ResponseEntity.ok(false);
+    }
+    @PutMapping("/update_team")
+    public ResponseEntity<Boolean> updateTeam(@RequestBody Team newteam, @RequestParam(value = "teamname") String teamname) {
+        Optional<Team> oldteam = teamRepository.findByTeamName(teamname);
+        if (oldteam.isPresent()) {
+            Team updatedTeam = oldteam.get();
+            updatedTeam.setTeamName(newteam.getTeamName());
+
+            teamRepository.save(updatedTeam);
+            return ResponseEntity.ok(true);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
 
 
