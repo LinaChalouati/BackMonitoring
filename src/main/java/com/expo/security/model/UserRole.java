@@ -1,18 +1,24 @@
 package com.expo.security.model;
 
 import com.expo.project.model.Project;
+import com.expo.security.controller.UserController;
+import com.expo.security.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import com.expo.project.model.Project;
+import com.expo.security.model.User;
+import jakarta.persistence.*;
+
 @Entity
 @Table(name = "user_roles")
+@Builder
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@Builder
-
 public class UserRole {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,7 +32,9 @@ public class UserRole {
     private Project project;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRoleType role;
+    private UserProjectRole role;
 
+
+    public UserRole(User userOptional, Project project, UserProjectRole role) {
+    }
 }

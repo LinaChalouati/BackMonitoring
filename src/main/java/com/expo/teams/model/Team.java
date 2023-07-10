@@ -28,5 +28,16 @@ public class Team {
     private List<User> users;
 
 
+
+    public void addUser(User user) {
+        users.add(user);
+        user.getTeams().add(this);
+    }
+
+    public void removeUser(User user) {
+        users.remove(user);
+        user.getTeams().remove(this);
+    }
+
 }
 

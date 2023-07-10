@@ -1,67 +1,72 @@
-        package com.expo.project.model;
+package com.expo.project.model;
 
-        import com.expo.security.model.User;
-        import com.expo.teams.model.Team;
-        import jakarta.persistence.*;
-        import lombok.AllArgsConstructor;
-        import lombok.Builder;
-        import lombok.Getter;
-        import lombok.Setter;
+import com.expo.security.model.User;
+import com.expo.security.model.UserRole;
+import com.expo.teams.model.Team;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-        import javax.validation.constraints.NotBlank;
-        import javax.validation.constraints.NotNull;
-        import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
-        @Entity
-        @Table(name = "projects")
-        @AllArgsConstructor
-        @Getter
-        @Setter
-        @Builder
-        public class Project {
-                @Id
-                @GeneratedValue(strategy = GenerationType.IDENTITY)
-                private Long id;
+@Entity
+@Table(name = "projects")
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
+public class Project {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-                @NotBlank(message = "Project name cannot be blank")
-                @Column(name = "project_name")
-                private String projectName;
+        @NotBlank(message = "Project name cannot be blank")
+        @Column(name = "project_name")
+        private String projectName;
 
-                @NotNull(message = "Monitoring flag cannot be null")
-                @Column(name = "monitoring")
-                private boolean monitoring;
+        @NotNull(message = "Monitoring flag cannot be null")
+        @Column(name = "monitoring")
+        private boolean monitoring;
 
-                @NotNull(message = "Alerting flag cannot be null")
-                @Column(name = "alerting")
-                private boolean alerting;
+        @NotNull(message = "Alerting flag cannot be null")
+        @Column(name = "alerting")
+        private boolean alerting;
 
-                @NotBlank(message = "App type cannot be blank")
-                @Column(name = "app_type")
-                private String appType;
-                //censée list<String> wala haja haka ama mamchetlich
-                @NotBlank(message = "IP address cannot be blank")
+        @NotBlank(message = "App type cannot be blank")
+        @Column(name = "app_type")
+        private String appType;
 
-                @Column(name = "ip_addresses")
-                private String ipAddresses;
+        @NotBlank(message = "IP address cannot be blank")
+        @Column(name = "ip_addresses")
+        private String ipAddresses;
 
-                @Column(name = "ms_names")
-                private String msnames;
-                @Column(name="dashboard_uid")
-                private String uid;
-                @Column(name="deployment")
-                private String deployment;
+        @Column(name = "ms_names")
+        private String msnames;
 
-                @ManyToMany
-                @JoinTable(
-                        name = "project_team_mapping",
-                        joinColumns = @JoinColumn(name = "project_id"),
-                        inverseJoinColumns = @JoinColumn(name = "team_id")
-                )
-                private List<Team> teams;
-/*
+        @Column(name = "dashboard_uid")
+        private String uid;
 
-                @ManyToMany(mappedBy = "projects")
-                private List<User> users;*/
+        @Column(name = "deployment")
+        private String deployment;
 
-                public Project() {}
+        @ManyToMany
+        @JoinTable(
+                name = "project_team_mapping",
+                joinColumns = @JoinColumn(name = "project_id"),
+                inverseJoinColumns = @JoinColumn(name = "team_id")
+        )
+        private List<Team> teams;
+
+        @ManyToMany(mappedBy = "projects")
+        private List<User> users;
+
+        @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY,orphanRemoval = true)
+        private List<UserRole> userRoles;
+
+        public Project() {
         }
+}

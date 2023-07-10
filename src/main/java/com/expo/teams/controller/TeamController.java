@@ -1,30 +1,62 @@
 package com.expo.teams.controller;
 
 import com.expo.security.model.User;
+import com.expo.security.model.UserDTO;
+import com.expo.security.repo.UserRepository;
 import com.expo.teams.model.Team;
+import com.expo.teams.model.TeamDTO;
 import com.expo.teams.repo.TeamRepository;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Controller
 @RequestMapping("api/teams")
 public class TeamController {
     private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
 
-    public TeamController(TeamRepository teamRepository) {
+    public TeamController(TeamRepository teamRepository, UserRepository userRepository) {
         this.teamRepository = teamRepository;
+        this.userRepository = userRepository;
     }
 
-    @GetMapping("get_teams")
-    public ResponseEntity<List<Team>> getAllTeams() {
+    @GetMapping("/get_teams")
+    public ResponseEntity<List<TeamDTO>> getAllTeams() {
         List<Team> teams = teamRepository.findAll();
-        return ResponseEntity.ok(teams);
+        List<TeamDTO> teamDTOs = new ArrayList<>();
+
+        for (Team team : teams) {
+            TeamDTO teamDTO = new TeamDTO();
+            teamDTO.setId(team.getId());
+            teamDTO.setTeamName(team.getTeamName());
+
+            List<User> users = team.getUsers();
+            List<UserDTO> userDTOs = new ArrayList<>();
+
+            for (User user : users) {
+                UserDTO userDTO = new UserDTO();
+                userDTO.setId(user.getId());
+                userDTO.setFirstname(user.getFirstname());
+                userDTO.setLastname(user.getLastname());
+                userDTO.setEmail(user.getEmail());
+                userDTO.setRole(user.getRole());
+                userDTOs.add(userDTO);
+            }
+
+            teamDTO.setUsers(userDTOs);
+            teamDTOs.add(teamDTO);
+        }
+
+        return ResponseEntity.ok(teamDTOs);
     }
+
     @PostMapping("add_team")
     public ResponseEntity addTeam(@RequestBody Team team) {
 
@@ -44,45 +76,81 @@ public class TeamController {
     }
     @PutMapping("/update_team")
     public ResponseEntity<Boolean> updateTeam(@RequestBody Team newteam, @RequestParam(value = "teamname") String teamname) {
-        Optional<Team> oldteam = teamRepository.findByTeamName(teamname);
-        if (oldteam.isPresent()) {
-            Team updatedTeam = oldteam.get();
-            updatedTeam.setTeamName(newteam.getTeamName());
+        Optional<Team> oldteamOptional = teamRepository.findByTeamName(teamname);
+            Team oldteam = oldteamOptional.get();
+            oldteam.setTeamName(newteam.getTeamName());
 
-            teamRepository.save(updatedTeam);
+            teamRepository.save(oldteam);
+            return ResponseEntity.ok(true);
+
+    }
+    @PostMapping("/{teamId}/users/{userId}")
+    public ResponseEntity<Boolean> addUserToTeam(@PathVariable Long teamId, @PathVariable Long userId) {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        Optional<User> userOptional = userRepository.findById(Math.toIntExact(userId));
+
+        if (teamOptional.isPresent() && userOptional.isPresent()) {
+            Team team = teamOptional.get();
+            User user = userOptional.get();
+
+            team.addUser(user);
+            teamRepository.save(team);
+
             return ResponseEntity.ok(true);
         }
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
 
 
-   /* @PutMapping("/update_user")
-    public ResponseEntity<Boolean> updateUser(@RequestParam String email, @RequestBody User updatedUser) {
-        System.out.println("User Firstname: " + updatedUser.getFirstname());
-        System.out.println("User Password: " + updatedUser.getPassword());
-        System.out.println("User Email: " + updatedUser.getEmail());
-        System.out.println("User Lastname: " + updatedUser.getLastname());
-        System.out.println("User Role: " + updatedUser.getRole());
-        System.out.println("Email: " + email);
 
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isPresent()) {
+    @DeleteMapping("/{teamId}/users/{userId}")
+    public ResponseEntity<Boolean> removeUserFromTeam(@PathVariable Long teamId, @PathVariable Long userId) {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        Optional<User> userOptional = userRepository.findById(Math.toIntExact(userId));
+
+        if (teamOptional.isPresent() && userOptional.isPresent()) {
+            Team team = teamOptional.get();
             User user = userOptional.get();
-            user.setFirstname(updatedUser.getFirstname());
-            user.setLastname(updatedUser.getLastname());
-            user.setEmail(updatedUser.getEmail());
-            user.setRole(updatedUser.getRole());
-            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-            }
-            userRepository.save(user);
+
+            team.removeUser(user);
+            teamRepository.save(team);
+
             return ResponseEntity.ok(true);
         }
-        return ResponseEntity.notFound().build();
-    }*/
-  /*  @GetMapping("teams_users")
-    public List<User> getUsersByTeamId(Long teamId) {
-        return teamRepository.findUsersById(teamId);
-    }*/
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+    }
+    @GetMapping("/{teamId}/users")
+    public ResponseEntity<List<UserDTO>> getTeamUsers(@PathVariable Long teamId) {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+
+        if (teamOptional.isPresent()) {
+            Team team = teamOptional.get();
+            List<User> users = team.getUsers();
+
+            // Convert User objects to UserDTO objects
+            List<UserDTO> userDTOs = users.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(userDTOs);
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    private UserDTO convertToDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setFirstname(user.getFirstname());
+        userDTO.setLastname(user.getLastname());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setRole(user.getRole());
+
+        return userDTO;
+    }
+
+
 
 }

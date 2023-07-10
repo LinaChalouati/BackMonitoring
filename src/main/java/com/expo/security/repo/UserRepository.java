@@ -30,6 +30,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 /*  @Query("SELECT u FROM User u WHERE u.email = :username")
   User findUserByUsername(@Param("username") String username);*/
 
+    //List<User> findByTeamsTeamNameIgnoreCase(String teamName);
+
 
 
 }

@@ -2,6 +2,7 @@ package com.expo.security.model;
 
 import com.expo.project.model.Project;
 import com.expo.teams.model.Team;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,8 @@ public class User implements UserDetails {
   private String firstname;
   private String lastname;
   private String email;
+  @JsonIgnore
+
   private String password;
 
   @Enumerated(EnumType.STRING)
@@ -43,16 +46,17 @@ public class User implements UserDetails {
   )
   private List<Team> teams;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER,orphanRemoval = true)
   private List<UserRole> userRoles;
-/*
+
   @ManyToMany
   @JoinTable(
           name = "user_projects",
           joinColumns = @JoinColumn(name = "user_id"),
           inverseJoinColumns = @JoinColumn(name = "project_id")
   )
-  private List<Project> projects;*/
+  private List<Project> projects;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -87,5 +91,15 @@ public class User implements UserDetails {
   @Override
   public boolean isEnabled() {
     return true;
+  }
+
+  public void addTeam(Team team) {
+    teams.add(team);
+    team.getUsers().add(this);
+  }
+
+  public void removeTeam(Team team) {
+    teams.remove(team);
+    team.getUsers().remove(this);
   }
 }

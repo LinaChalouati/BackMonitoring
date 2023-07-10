@@ -22,7 +22,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     //List<User> findUsersById(Long teamId);
    // List<Team> getAll();
-    Team  findByTeamName(String teamName);
+    Optional<Team> findByTeamName(String teamName);
+ //   Optional<Team> findByTeamNameIgnoreCase(String teamName);
+
+
 
 
 }
