@@ -1,40 +1,41 @@
-global:
-  resolve_timeout: 5m
-  smtp_smarthost: smtp.example.com:587
-  smtp_from: alerts@example.com
-  smtp_auth_username: username
-  smtp_auth_password: password
+global: {resolve_timeout: 5m, smtp_smarthost: 'smtp.example.com:587', smtp_from: alerts@example.com,
+  smtp_auth_username: username, smtp_auth_password: password}
 route:
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 12h
   receiver: default-receiver
-  group_by:
-  - alertname
+  group_by: [alertname]
   routes:
-  - match:
-      alertname: another rule name
-      instance: localhost:9090
+  - match: {alertname: another rule name, instance: 'localhost:9090'}
+    receiver: team
+    continue: false
+  - match: {alertname: 'second rule ', instance: 'localhost:9090'}
     receiver: team
     continue: true
-  - match:
-      alertname: 'second rule '
-      instance: localhost:9090
+  - match: {alertname: hello world 3, instance: 'localhost:9090'}
     receiver: team
     continue: true
-  - match:
-      alertname: hello world 3
-      instance: localhost:9090
+  - match: {alertname: another rule name, instance: 'localhost:9090'}
     receiver: team
+    continue: false
+  - match: {alertname: 'instance shutdown ', instance: 'localhost:9093'}
+    receiver: another rule name
     continue: true
-  - match:
-      alertname: another rule name
-      instance: localhost:9090
-    receiver: team
+  - match: {alertname: instance Shut Down, instance: 'localhost:3000'}
+    receiver: point team
+    continue: true
+  - match: {alertname: instance shutdown, instance: 'localhost:9093'}
+    receiver: another rule name
     continue: true
 receivers:
 - name: default-receiver
   email_configs:
-  - to: default@example.com
+  - {to: default@example.com}
 - name: team
+  email_configs: []
+- name: another rule name
+  email_configs:
+  - {to: pfeaeslina@gmail.com}
+- name: point team
   email_configs: []

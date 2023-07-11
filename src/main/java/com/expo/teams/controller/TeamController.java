@@ -63,10 +63,11 @@ public class TeamController {
     }
 
     @PostMapping("add_team")
-    public ResponseEntity addTeam(@RequestBody Team team) {
-
-        return ResponseEntity.ok(teamRepository.save(team));
+        public ResponseEntity<Long> addTeam(@RequestBody Team team) {
+        Team newTeam = teamRepository.save(team);
+        return ResponseEntity.ok().body(newTeam.getId());
     }
+
 
 
     @DeleteMapping("/delete_team")
@@ -90,9 +91,9 @@ public class TeamController {
 
     }
     @PostMapping("/{teamId}/users/{userId}")
-    public ResponseEntity<Boolean> addUserToTeam(@PathVariable Long teamId, @PathVariable Long userId) {
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        Optional<User> userOptional = userRepository.findById(Math.toIntExact(userId));
+    public ResponseEntity<Boolean> addUserToTeam(@PathVariable String teamId, @PathVariable String userId) {
+        Optional<Team> teamOptional = teamRepository.findById(Long.parseLong(teamId));
+        Optional<User> userOptional = userRepository.findById(Integer.parseInt( userId));
 
         if (teamOptional.isPresent() && userOptional.isPresent()) {
             Team team = teamOptional.get();

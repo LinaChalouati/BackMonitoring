@@ -23,3 +23,36 @@ groups:
       description: summary 
 
 
+  - alert: instance shutdown 
+    expr: up{instance="localhost:9093"} < 1 
+    for: 1m 
+    labels:
+      severity: Critical
+      instance: localhost:9093
+    annotations:
+      summary: a summary 
+      description: description 
+
+
+  - alert: instance Shut Down
+    expr: up{instance="localhost:3000"} < 1 
+    for: 1m 
+    labels:
+      severity: Critical
+      instance: localhost:3000
+    annotations:
+      summary: summary 
+      description: description 
+
+
+  - alert: instance shutdown
+    expr: up{instance="localhost:9093"} < 1 
+    for: 1m 
+    labels:
+      severity: Critical
+      instance: localhost:9093
+    annotations:
+      summary: a summary 
+      description: another description 
+
+
