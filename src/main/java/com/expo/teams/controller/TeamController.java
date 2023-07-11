@@ -1,10 +1,14 @@
 package com.expo.teams.controller;
 
+import com.expo.project.model.Project;
+import com.expo.project.model.ProjectTeam;
+import com.expo.project.repo.ProjectRepository;
 import com.expo.security.model.User;
 import com.expo.security.model.UserDTO;
 import com.expo.security.repo.UserRepository;
 import com.expo.teams.model.Team;
 import com.expo.teams.model.TeamDTO;
+import com.expo.teams.model.TeamRole;
 import com.expo.teams.repo.TeamRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +21,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("api/teams")
+    @RequestMapping("api/teams")
 public class TeamController {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-
-    public TeamController(TeamRepository teamRepository, UserRepository userRepository) {
+    private final ProjectRepository projectRepository;
+    public TeamController(TeamRepository teamRepository, UserRepository userRepository, ProjectRepository projectRepository) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
     }
 
     @GetMapping("/get_teams")
@@ -121,7 +126,7 @@ public class TeamController {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
-    @GetMapping("/{teamId}/users")
+        @GetMapping("/{teamId}/users")
     public ResponseEntity<List<UserDTO>> getTeamUsers(@PathVariable Long teamId) {
         Optional<Team> teamOptional = teamRepository.findById(teamId);
 
@@ -150,6 +155,10 @@ public class TeamController {
 
         return userDTO;
     }
+
+
+
+
 
 
 

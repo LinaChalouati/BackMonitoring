@@ -35,6 +35,5 @@ public class UserRole {
     private UserProjectRole role;
 
 
-    public UserRole(User userOptional, Project project, UserProjectRole role) {
-    }
+
 }

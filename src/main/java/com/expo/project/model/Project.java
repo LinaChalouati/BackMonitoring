@@ -3,6 +3,7 @@ package com.expo.project.model;
 import com.expo.security.model.User;
 import com.expo.security.model.UserRole;
 import com.expo.teams.model.Team;
+import com.expo.teams.model.TeamRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,8 +53,10 @@ public class Project {
 
         @Column(name = "deployment")
         private String deployment;
+        @Column(name="isPrivate")
+        private Boolean isPrivate;
 
-        @ManyToMany
+        @ManyToMany(cascade = CascadeType.ALL)
         @JoinTable(
                 name = "project_team_mapping",
                 joinColumns = @JoinColumn(name = "project_id"),
@@ -64,9 +67,26 @@ public class Project {
         @ManyToMany(mappedBy = "projects")
         private List<User> users;
 
-        @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY,orphanRemoval = true)
+        @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
         private List<UserRole> userRoles;
 
+        @ElementCollection
+        @CollectionTable(name = "project_teams", joinColumns = @JoinColumn(name = "project_id"))
+        @Column(name = "team_role")
+        @Enumerated(EnumType.STRING)
+        private List<TeamRole> teamRoles;
+
+        @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<ProjectTeam> projectTeams;
+
+        // Getter and setter for projectTeams
+        public List<ProjectTeam> getProjectTeams() {
+                return projectTeams;
+        }
+
+        public void setProjectTeams(List<ProjectTeam> projectTeams) {
+                this.projectTeams = projectTeams;
+        }
         public Project() {
         }
 }

@@ -3,6 +3,7 @@ package com.expo.project.controller;
 
 import com.expo.project.model.Project;
 import com.expo.project.model.ProjectDTO;
+import com.expo.project.model.ProjectTeam;
 import com.expo.project.repo.ProjectRepository;
 import com.expo.project.service.ProjectService;
 import com.expo.security.model.User;
@@ -11,6 +12,8 @@ import com.expo.security.model.UserRole;
 import com.expo.security.repo.UserRoleRepository;
 import com.expo.teams.model.Team;
 import com.expo.teams.model.TeamDTO;
+import com.expo.teams.model.TeamRole;
+import com.expo.teams.repo.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,10 +32,12 @@ public class ProjectController {
     private ProjectService projectService;
     private final ProjectRepository projectRepository;
     private final UserRoleRepository userRoleRepository;
+    private final TeamRepository teamRepository;
 
-    public ProjectController(ProjectRepository projectRepository, UserRoleRepository userRoleRepository) {
+    public ProjectController(ProjectRepository projectRepository, UserRoleRepository userRoleRepository, TeamRepository teamRepository) {
         this.projectRepository = projectRepository;
         this.userRoleRepository = userRoleRepository;
+        this.teamRepository = teamRepository;
     }
 
     @PostMapping(value = "/save-doproject")
@@ -117,6 +122,8 @@ public class ProjectController {
         projectDTO.setMsnames(project.getMsnames());
         projectDTO.setUid(project.getUid());
         projectDTO.setDeployment(project.getDeployment());
+        projectDTO.setIsPrivate(project.getIsPrivate());
+
         List<UserDTO> userDTOs = project.getUsers().stream()
                 .map(this::convertUserToDTO)
                 .collect(Collectors.toList());
@@ -176,6 +183,10 @@ public class ProjectController {
             if (Objects.nonNull(updatedProject.isAlerting())) {
                 existingProject.setAlerting(updatedProject.isAlerting());
             }
+            if (Objects.nonNull(updatedProject.getIsPrivate())) {
+                existingProject.setIsPrivate(updatedProject.getIsPrivate());
+            }
+
 
 
             projectRepository.save(existingProject);
@@ -193,7 +204,7 @@ public class ProjectController {
             // Remove user roles associated with the project
             List<UserRole> userRoles = project.getUserRoles();
             for( UserRole role : userRoles){
-                userRoleRepository.delete((UserRole) userRoles);
+                userRoleRepository.delete(role);
 
             }
 
@@ -212,6 +223,79 @@ public class ProjectController {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found.");
     }
+    // fiha mochkla , moch ifassakh m table projectTeam
+    @DeleteMapping("/projects/{projectId}/teams/{teamId}")
+    public ResponseEntity<String> removeTeamFromProject(@PathVariable Long projectId, @PathVariable Long teamId) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+
+        if (projectOptional.isPresent() && teamOptional.isPresent()) {
+            Project project = projectOptional.get();
+            Team team = teamOptional.get();
+
+            // Check if the team is assigned to the project
+            boolean isTeamAssigned = project.getTeams().stream()
+                    .anyMatch(existingTeam -> existingTeam.getId().equals(teamId));
+
+            if (!isTeamAssigned) {
+                return ResponseEntity.badRequest().body("Team is not assigned to the project.");
+            }
+
+            // Remove the team from the project's list of teams
+            project.getTeams().removeIf(existingTeam -> existingTeam.getId().equals(teamId));
+
+            // Remove the project from the team's list of projects
+            team.getProjects().remove(project);
+
+            projectRepository.save(project);
+            teamRepository.save(team);
+
+            return ResponseEntity.ok("Team removed from the project successfully.");
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project or team not found.");
+    }
+
+    @PostMapping("/projects/{projectId}/teams/{teamId}")
+    public ResponseEntity<String> addTeamToProject(@PathVariable Long projectId, @PathVariable Long teamId, @RequestParam TeamRole role) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+
+        if (projectOptional.isPresent() && teamOptional.isPresent()) {
+            Project project = projectOptional.get();
+            Team team = teamOptional.get();
+
+            // Check if the team is already added to the project
+            boolean isTeamAdded = project.getTeams().stream()
+                    .anyMatch(existingTeam -> existingTeam.getId().equals(teamId));
+
+            if (isTeamAdded) {
+                return ResponseEntity.badRequest().body("Team is already added to the project.");
+            }
+
+            // Add the team to the project
+            project.getTeams().add(team);
+            // Set the role for the team in the project
+            this.setTeamRoleInProject(project, team, role);
+
+            projectRepository.save(project);
+
+            return ResponseEntity.ok("Team added to the project successfully.");
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project or team not found.");
+    }
+
+    private void setTeamRoleInProject(Project project, Team team, TeamRole role) {
+        ProjectTeam projectTeam = new ProjectTeam();
+        projectTeam.setProject(project);
+        projectTeam.setTeam(team);
+        projectTeam.setRole(role);
+
+        project.getProjectTeams().add(projectTeam);
+    }
+
+
 
 
 }

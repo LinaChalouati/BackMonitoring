@@ -47,7 +47,7 @@ public class User implements UserDetails {
   private List<Team> teams;
 
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER,orphanRemoval = true)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY,orphanRemoval = true)
   private List<UserRole> userRoles;
 
   @ManyToMany

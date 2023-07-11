@@ -2,9 +2,9 @@ package com.expo.project.model;
 
 
 import com.expo.teams.model.Team;
+import com.expo.teams.model.TeamRole;
 import jakarta.persistence.*;
 import lombok.*;
-
 @Entity
 @Table(name = "project_teams")
 @AllArgsConstructor
@@ -12,7 +12,6 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-
 public class ProjectTeam {
 
     @Id
@@ -27,4 +26,6 @@ public class ProjectTeam {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @Enumerated(EnumType.STRING)
+    private TeamRole role;
 }
